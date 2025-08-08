@@ -7,9 +7,10 @@ import hashlib
 def get_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
-def scrape(url):
+def scrape(url, referrer=None):
     try:
-        response = requests.get(url, timeout=10)
+        headers = {'Referer': referrer} if referrer else {}
+        response = requests.get(url, headers=headers, timeout=10)
         status_code = response.status_code
         soup = BeautifulSoup(response.text, 'html.parser')
         title = soup.title.string if soup.title else ''
@@ -17,6 +18,7 @@ def scrape(url):
         hash_value = get_hash(content)
         return {
             'url': url,
+            'referrer': referrer,
             'fetched_at': datetime.now(),
             'title': title,
             'content': content,
@@ -27,6 +29,7 @@ def scrape(url):
     except Exception as e:
         return {
             'url': url,
+            'referrer': referrer,
             'fetched_at': datetime.now(),
             'title': None,
             'content': None,
@@ -44,13 +47,12 @@ def save_to_mysql(data):
     )
     cursor = conn.cursor()
     sql = '''
-        INSERT INTO scraped_pages (url, fetched_at, title, content, status_code, hash, error_message)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO scraped_pages (url, referrer, fetched_at, title, content, status_code, hash, error_message)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     '''
     cursor.execute(sql, (
-        data['url'], data['fetched_at'], data['title'],
-        data['content'], data['status_code'],
-        data['hash'], data['error_message']
+        data['url'], data['referrer'], data['fetched_at'], data['title'],
+        data['content'], data['status_code'], data['hash'], data['error_message']
     ))
     conn.commit()
     cursor.close()
