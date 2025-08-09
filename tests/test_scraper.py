@@ -38,6 +38,32 @@ def test_scrape_success(mock_connect, mock_get):
     # 実行
     scrape("https://example.com")
 
+from unittest.mock import patch, MagicMock
+from scraper import scrape
+
+@patch("mysql.connector.connect")
+@patch("requests.get")
+def test_scrape_success(mock_get, mock_connect):
+    # モックHTTPレスポンス
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.text = "<html><body><a href='https://example.com'>Link</a></body></html>"
+
+    # モックDB接続とカーソル
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_connect.return_value = mock_conn
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchone.return_value = None  # 重複チェック用
+    mock_cursor.execute.return_value = None
+    mock_conn.commit.return_value = None
+
+    # 実行
+    scrape("https://example.com")
+
+    # アサーション（任意）
+    mock_cursor.execute.assert_called()
+    mock_conn.commit.assert_called()
+
 @patch('scraper.requests.get')
 def test_scrape_success(mock_get):
     mock_response = Mock()
