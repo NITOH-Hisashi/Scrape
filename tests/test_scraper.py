@@ -1,32 +1,32 @@
 import pytest
 from unittest.mock import patch, MagicMock, Mock
-from scraper import get_hash, scrape, should_scrape, extract_and_save_links, process_single_page
+from scraper import get_hash, scrape_page, should_scrape, extract_and_save_links, process_single_page
 
 def test_get_hash():
     text = "hello"
     expected_hash = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     assert get_hash(text) == expected_hash
 
-def test_scrape_valid_url():
+def test_scrape_page_valid_url():
     url = "https://example.com"
-    page = scrape(url)
+    page = scrape_page(url)
     assert page.url == url
     assert page.content is not None
     assert page.error_message is None
 
-def test_scrape_invalid_url():
+def test_scrape_page_invalid_url():
     url = "https://invalid.url"
-    page = scrape(url)
+    page = scrape_page(url)
     assert page.url == url
     assert page.error_message is not None
 
 @patch("scraper.requests.get")
-def test_scrape_success_http(mock_get):
+def test_scrape_page_success_http(mock_get):
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.text = "<html><head><title>Test Page</title></head><body>Content</body></html>"
     mock_get.return_value = mock_response
-    result = scrape("http://example.com")
+    result = scrape_page("http://example.com")
     assert result.url == "http://example.com"
     assert result.title == "Test Page"
     assert "Content" in result.content
@@ -36,7 +36,7 @@ def test_scrape_success_http(mock_get):
 @patch("scraper.requests.get")
 def test_scrape_failure_http(mock_get):
     mock_get.side_effect = Exception("Failed to fetch")
-    result = scrape("http://example.com")
+    result = scrape_page("http://example.com")
     assert result.url == "http://example.com"
     assert result.error_message == "Failed to fetch"
 
@@ -52,7 +52,7 @@ def test_scrape_success_db(mock_connect, mock_get):
     mock_cursor.fetchone.return_value = None
     mock_cursor.execute.return_value = None
     mock_conn.commit.return_value = None
-    scrape("https://example.com")
+    scrape_page("https://example.com")
     assert mock_cursor.execute.called
     assert mock_conn.commit.called
 
