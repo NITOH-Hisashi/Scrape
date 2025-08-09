@@ -1,5 +1,6 @@
 import unittest
 from scraper import get_hash, scrape
+from unittest.mock import patch, Mock
 
 class TestScraper(unittest.TestCase):
     def test_get_hash(self):
@@ -19,6 +20,31 @@ class TestScraper(unittest.TestCase):
         page = scrape(url)
         self.assertEqual(page.url, url)
         self.assertIsNotNone(page.error_message)
+
+@patch('scraper.requests.get')
+def test_scrape_success(mock_get):
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.text = '<html><head><title>Test Page</title></head><body>Content</body></html>'
+    mock_get.return_value = mock_response
+
+    result = scraper.scrape('http://example.com')
+
+    assert result.url == 'http://example.com'
+    assert result.title == 'Test Page'
+    assert 'Content' in result.content
+    assert result.status_code == 200
+    assert result.error_message is None
+
+@patch('scraper.requests.get')
+def test_scrape_failure(mock_get):
+    mock_get.side_effect = Exception('Failed to fetch')
+
+    result = scraper.scrape('http://example.com')
+
+    assert result.url == 'http://example.com'
+    assert result.error_message == 'Failed to fetch'
+
 
 if __name__ == '__main__':
     unittest.main()
