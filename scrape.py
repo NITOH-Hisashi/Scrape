@@ -135,7 +135,8 @@ def extract_links(soup, base_url):
     links = []
     for a in soup.find_all('a', href=True):
         href = a['href']
-        full_url = requests.compat.urljoin(base_url, href)
+        from urllib.parse import urljoin
+        full_url = urljoin(base_url, href)
         if is_under_base(full_url, base_url):
             title = a.get_text(strip=True)
             # 画像がアンカー内にある場合

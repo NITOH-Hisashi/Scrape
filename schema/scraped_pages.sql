@@ -7,6 +7,6 @@ CREATE TABLE scraped_pages (
     content LONGTEXT,                -- ページ本文
     status_code INT,                 -- HTTPステータスコード
     hash TEXT,                       -- 内容のハッシュ値
-    error_message TEXT               -- エラー内容（取得失敗時）
+    error_message TEXT,              -- エラー内容（取得失敗時）
     processed BOOLEAN DEFAULT FALSE  -- 取得済みかどうかのフラグで「未処理のURL」を判定
 );

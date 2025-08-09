@@ -1,25 +1,15 @@
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse
-import datetime
 
 import requests
 from bs4 import BeautifulSoup
 import mysql.connector
+from datetime import datetime, timedelta
 from datetime import datetime
 from urllib.parse import urljoin
-def extract_links(soup, base_url):
-    links = []
-    for a in soup.find_all('a', href=True):
-        full_url = urljoin(base_url, a['href'])
-        # ベースURLの下にあるか確認
-        if is_under_base(full_url, base_url):
-            title = a.get_text(strip=True)
-            # 画像がアンカー内にある場合
-            img = a.find('img')
-            if img:
-                alt = img.get('alt') or img.get('title') or ''
-                title = title or alt
-            links.append((full_url, title))
+import hashlib
+from config import DB_CONFIG
+from link_extractor import extract_links
     return links
 def scrape(url, referrer=None):
     try:
@@ -62,12 +52,7 @@ def is_under_base(url, base_url):
 def get_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 def save_to_mysql(data):
-    conn = mysql.connector.connect(
-        host='localhost',
-        user='your_user',
-        password='your_password',
-        database='your_database'
-    )
+    conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     sql = '''
         INSERT INTO scraped_pages (url, referrer, fetched_at, title, content, status_code, hash, error_message)
@@ -92,10 +77,17 @@ def fetch_and_store_robots(domain, user_agent='MyScraperBot'):
         allow = '\n'.join(rp.allow_all if rp.allow_all else [])
         delay = rp.crawl_delay(user_agent)
 
-        now = datetime.datetime.utcnow()
-        expires = now + datetime.timedelta(hours=24)
+        now = datetime.utcnow()
+        expires = now + timedelta(hours=24)
 
         # DB保存（UPSERT）
+        conn = mysql.connector.connect(
+            host='localhost',
+            user='your_user',
+            password='your_password',
+            database='your_database'
+        )
+        cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO robots_rules (domain, user_agent, disallow, allow, crawl_delay, fetched_at, expires_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -107,6 +99,8 @@ def fetch_and_store_robots(domain, user_agent='MyScraperBot'):
                 expires_at = VALUES(expires_at)
         """, (domain, user_agent, disallow, allow, delay, now, expires))
         conn.commit()
+        cursor.close()
+        conn.close()
     except Exception as e:
         print(f"robots.txt fetch failed for {domain}: {e}")
 
