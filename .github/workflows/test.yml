@@ -1,4 +1,4 @@
-name: Run Pytest
+name: Run Tests and Lint
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ Development, main ]
 
 jobs:
-  test:
+  test-and-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,11 +23,19 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-mock pytest-cov
+        pip install pytest pytest-cov flake8 black
 
     - name: 🧪 Run tests with pytest
       run: |
         pytest --cov=scraper --cov-report=term-missing tests/
+
+    - name: 🧼 Run flake8 lint check
+      run: |
+        flake8 scraper tests --max-line-length=88 --exclude=__init__.py
+
+    - name: 🎨 Run black formatting check
+      run: |
+        black --check scraper tests
 
     - name: 📊 Upload coverage to Codecov
       uses: codecov/codecov-action@v3
