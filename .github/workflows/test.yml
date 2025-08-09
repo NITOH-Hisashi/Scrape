@@ -27,6 +27,7 @@ jobs:
 
     - name: 🧪 Run tests with pytest
       run: |
+        export PYTHONPATH="${{ github.workspace }}"
         pytest --cov=scraper --cov-report=term-missing tests/
 
     - name: 🧼 Run flake8 lint check
