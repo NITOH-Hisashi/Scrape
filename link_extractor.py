@@ -29,16 +29,16 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
 
     # <a> タグの処理
     for a_tag in soup.find_all("a", href=True):
-        href = normalize_url(a_tag["href"])
+        raw_href = a_tag["href"]
+        full_url = normalize_url(urljoin(base_url, raw_href))
         text = a_tag.get_text(strip=True)
-        full_url = urljoin(base_url, href)
         links.append((full_url, text))
 
     # <img> タグの処理（alt属性をテキストとして使用）
     for img_tag in soup.find_all("img", src=True):
-        src = normalize_url(img_tag["src"])
+        raw_src = img_tag["src"]
+        full_url = normalize_url(urljoin(base_url, raw_src))
         alt = img_tag.get("alt", "")
-        full_url = urljoin(base_url, src)
         links.append((full_url, alt))
 
     return links
