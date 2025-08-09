@@ -1,6 +1,6 @@
 # Scrape Webスクレイピングツール
 
-効率的で安全なWebスクレイピングを実現するPythonツールセットです。robots.txtの規則を遵守し、重複チェックや更新確認機能を備えています。
+効率的で安全なWebスクレイピングを実現するPythonツールセットです。robots.txtの規則を遵守し、重複チェックや再帰的なリンク抽出機能を備えています。
 
 ## 主な機能
 
@@ -8,9 +8,16 @@
 - 📊 MySQLへのデータ自動保存
 - 🔗 インテリジェントなリンク抽出（画像alt属性の解析含む）
 - 🔄 コンテンツの重複チェック（SHA-256ハッシュによる）
-- ⌚ If-Modified-Since による更新確認
 - 🌲 再帰的なクローリング機能
 - ⚠️ 包括的なエラー処理とログ記録
+
+## プロジェクト構成
+
+- `config.py`: データベース設定
+- `models.py`: データモデルとデータベース操作
+- `robots_handler.py`: robots.txtの取得と解析
+- `link_extractor.py`: リンクの抽出と解析
+- `scraper.py`: メインのスクレイピング処理
 
 ## セットアップ
 
@@ -39,68 +46,9 @@ mysql -u your_user -p scraping_db < schema/scraped_pages.sql
 mysql -u your_user -p scraping_db < schema/robots_rules.sql
 ```
 
-## 基本的な使い方
+## データベース設定
 
-### 単一ページのスクレイピング
-
-```python
-from scrape import scrape, save_to_mysql
-
-# 基本的なスクレイピング
-result = scrape('https://example.com')
-save_to_mysql(result)
-```
-
-### 再帰的なクローリング
-
-```python
-from scrape import crawl_and_store
-
-# ドメイン配下を再帰的にクロール
-base_url = 'https://example.com'
-crawl_and_store(base_url)
-```
-
-### robots.txt対応のスクレイピング
-
-```python
-from scrape import is_allowed_by_robots, scrape
-
-url = 'https://example.com/page'
-if is_allowed_by_robots(url):
-    result = scrape(url)
-    save_to_mysql(result)
-```
-
-## 高度な機能
-
-### 更新チェック付きフェッチ
-
-```python
-from scrape import fetch_if_modified
-from datetime import datetime
-
-last_fetch = datetime.now()
-response = fetch_if_modified('https://example.com', last_fetch)
-if response.status_code == 304:
-    print("コンテンツは更新されていません")
-```
-
-### リンク抽出
-
-```python
-from scrape import extract_links
-from bs4 import BeautifulSoup
-
-soup = BeautifulSoup(html_content, 'html.parser')
-links = extract_links(soup, 'https://example.com')
-for url, title in links:
-    print(f"{title}: {url}")
-```
-
-## 設定
-
-データベース接続情報は以下の形式で設定します：
+`config.py`にデータベース接続情報を設定します：
 
 ```python
 DB_CONFIG = {
@@ -111,12 +59,59 @@ DB_CONFIG = {
 }
 ```
 
+## 使用方法
+
+### スクレイピングの実行
+
+基本的な実行：
+```bash
+python scraper.py
+```
+
+オプションの指定：
+```bash
+# カスタムUser-agentを指定して実行
+python scraper.py --user-agent "CustomBot/1.0"
+```
+
+### スクレイピング対象の追加
+
+スクレイピング対象のURLをデータベースに追加します：
+
+```sql
+INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE);
+```
+
+## データベーススキーマ
+
+### scraped_pages テーブル
+
+- `url`: スクレイピング対象のURL（主キー）
+- `referrer`: リンク元のURL
+- `fetched_at`: 取得日時
+- `title`: ページタイトルまたはリンクテキスト
+- `content`: ページのHTML内容
+- `status_code`: HTTPステータスコード
+- `hash`: コンテンツのハッシュ値
+- `error_message`: エラー情報（存在する場合）
+- `processed`: 処理済みフラグ
+
+### robots_rules テーブル
+
+- `domain`: ドメイン名（主キー）
+- `user_agent`: User-agent文字列
+- `disallow`: 禁止パターン（改行区切り）
+- `allow`: 許可パターン（改行区切り）
+- `crawl_delay`: クロール間隔（秒）
+- `fetched_at`: 取得日時
+- `expires_at`: 有効期限（24時間）
+
 ## 注意事項
 
-- 対象サイトのrobots.txtを必ず確認・遵守してください
-- クロール間隔は適切に設定してください（デフォルト: 1リクエスト/秒）
+- 対象サイトのrobots.txtを自動的に確認・遵守します
+- クロール間隔はrobots.txtの指定に従います
 - データの利用は各サイトの利用規約に従ってください
-- SSLエラーが発生する場合は証明書の設定を確認してください
+- エラー発生時もデータベースに記録が残ります
 
 ## エラー対処
 
@@ -126,13 +121,10 @@ DB_CONFIG = {
    - 接続情報の確認
 
 2. ネットワークエラー
-   - タイムアウト値の調整
+   - タイムアウト値の調整（デフォルト: 10秒）
    - プロキシ設定の確認
    - ファイアウォール設定の確認
 
-## ライセンス
-
-MIT License
 
 ## 参考資料
 
