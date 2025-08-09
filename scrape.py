@@ -187,3 +187,23 @@ for row in unprocessed_rows:
     except Exception as e:
         mark_as_error(row['id'], str(e))
 
+### 基本的なスクレイピング
+from scrape import scrape, save_to_mysql
+
+# 単一ページのスクレイピング
+result = scrape('https://example.com')
+save_to_mysql(result)
+
+### robots.txtに準拠したスクレイピング
+from fetch_and_store_robots import fetch_and_store_robots, can_fetch_from_db
+
+# 1. まずrobots.txtを取得
+domain = 'example.com'
+fetch_and_store_robots(domain)
+
+# 2. URLが取得可能か確認してからスクレイピング
+path = '/article/123'
+if can_fetch_from_db(path, rules_row):
+    result = scrape(f'https://{domain}{path}')
+    save_to_mysql(result)
+
