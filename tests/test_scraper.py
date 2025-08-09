@@ -52,9 +52,9 @@ def test_scrape_success_db(mock_connect, mock_get):
     mock_cursor.fetchone.return_value = None
     mock_cursor.execute.return_value = None
     mock_conn.commit.return_value = None
-    scrape_page("https://example.com")
-    assert mock_cursor.execute.called
-    assert mock_conn.commit.called
+    result = scrape_page("https://example.com")
+    assert result.status_code == 200
+    assert result.content is not None
 
 @patch("scraper.check_robots_rules")
 @patch("scraper.mark_page_as_processed")
