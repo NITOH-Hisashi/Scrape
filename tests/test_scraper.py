@@ -45,13 +45,13 @@ def test_scrape_failure_http(mock_get):
 def test_scrape_success_db(mock_connect, mock_get):
     mock_get.return_value.status_code = 200
     mock_get.return_value.text = "<html><body><a href='https://example.com'>Link</a></body></html>"
+
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_connect.return_value = mock_conn
     mock_conn.cursor.return_value = mock_cursor
     mock_cursor.fetchone.return_value = None
-    mock_cursor.execute.return_value = None
-    mock_conn.commit.return_value = None
+
     result = scrape_page("https://example.com")
     assert result.status_code == 200
     assert result.content is not None
