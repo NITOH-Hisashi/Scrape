@@ -26,6 +26,10 @@
 - Python 3.x
 - MySQL 5.7以上 または MariaDB 10.x以上
 
+```bash
+sudo apt install python3-pip
+```
+
 ### パッケージのインストール
 
 ```bash
@@ -125,6 +129,55 @@ INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE)
    - プロキシ設定の確認
    - ファイアウォール設定の確認
 
+---
+## ✅ テストの実行方法
+
+### 1. 必要な環境の準備
+- Python 3.x
+- `requests`, `beautifulsoup4`, `mysql-connector-python` などの依存パッケージをインストール：
+```bash
+pip install -r requirements.txt
+```
+
+### 2. データベースの準備（MySQL）
+```sql
+CREATE DATABASE scraping_db;
+USE scraping_db;
+-- スキーマのインポート
+mysql -u your_user -p scraping_db < schema/scraped_pages.sql
+mysql -u your_user -p scraping_db < schema/robots_rules.sql
+```
+
+### 3. DB接続設定（`config.py`）
+```python
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'your_user',
+    'password': 'your_password',
+    'database': 'scraping_db'
+}
+```
+
+### 4. テストの実行
+テストファイルは `tests/` ディレクトリにあり、`pytest` で実行可能です：
+
+```bash
+pytest tests/
+```
+
+特定のテストだけを実行したい場合：
+```bash
+pytest tests/test_scrape.py
+```
+
+### 5. モックを使ったテスト例
+`test_scrape_failure(mock_get)` という関数が確認されており、`requests.get` をモックして失敗ケースを検証しています。`pytest-mock` が必要な場合はインストールしてください：
+
+```bash
+pip install pytest-mock
+```
+
+---
 
 ## 参考資料
 
