@@ -19,7 +19,7 @@ def fetch_and_store_robots(domain, user_agent='MyScraperBot'):
         allow = '\n'.join(rp.allow_all if hasattr(rp, 'allow_all') else [])
         delay = rp.crawl_delay(user_agent)
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         expires = now + datetime.timedelta(hours=24)
 
         sql = """
