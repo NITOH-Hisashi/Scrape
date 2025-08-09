@@ -80,12 +80,9 @@ def mark_page_as_processed(url, error_message=None):
     cursor = conn.cursor()
     
     try:
-        cursor.execute("""
-            UPDATE scraped_pages 
-            SET processed = TRUE,
-                error_message = %s
-            WHERE url = %s
-        """, (error_message, url))
+        cursor.execute(
+            "UPDATE scraped_pages SET processed = TRUE, error_message = %s WHERE url = %s",
+            (error_message, url))
         conn.commit()
     finally:
         cursor.close()
