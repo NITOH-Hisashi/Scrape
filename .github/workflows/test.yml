@@ -28,15 +28,15 @@ jobs:
     - name: 🧪 Run tests with pytest
       run: |
         export PYTHONPATH="${{ github.workspace }}"
-        pytest --cov=scraper --cov-report=term-missing tests/
+        pytest --cov=scraper.py --cov-report=term-missing tests/
 
     - name: 🧼 Run flake8 lint check
       run: |
-        flake8 scraper tests --max-line-length=88 --exclude=__init__.py
+        flake8 scraper.py tests --max-line-length=88 --exclude=__init__.py
 
     - name: 🎨 Run black formatting check
       run: |
-        black --check scraper tests
+        black --check scraper.py tests
 
     - name: 📊 Upload coverage to Codecov
       uses: codecov/codecov-action@v3
