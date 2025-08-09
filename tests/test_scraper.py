@@ -71,7 +71,7 @@ def test_scrape_success(mock_get):
     mock_response.text = '<html><head><title>Test Page</title></head><body>Content</body></html>'
     mock_get.return_value = mock_response
 
-    result = scraper.scrape('http://example.com')
+    result = scrape('http://example.com')
 
     assert result.url == 'http://example.com'
     assert result.title == 'Test Page'
@@ -83,7 +83,7 @@ def test_scrape_success(mock_get):
 def test_scrape_failure(mock_get):
     mock_get.side_effect = Exception('Failed to fetch')
 
-    result = scraper.scrape('http://example.com')
+    result = scrape('http://example.com')
 
     assert result.url == 'http://example.com'
     assert result.error_message == 'Failed to fetch'
