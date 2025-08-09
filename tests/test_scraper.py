@@ -21,6 +21,23 @@ class TestScraper(unittest.TestCase):
         self.assertEqual(page.url, url)
         self.assertIsNotNone(page.error_message)
 
+@patch("mysql.connector.connect")
+def test_scrape_success(mock_connect, mock_get):
+    # モックDB接続の設定
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_connect.return_value = mock_conn
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchone.return_value = None
+    mock_cursor.execute.return_value = None
+
+    # モックHTTPレスポンス
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.text = "<html><body><a href='https://example.com'>Link</a></body></html>"
+
+    # 実行
+    scrape("https://example.com")
+
 @patch('scraper.requests.get')
 def test_scrape_success(mock_get):
     mock_response = Mock()

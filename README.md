@@ -28,20 +28,34 @@
 
 ```bash
 sudo apt install python3-pip
+sudo apt install python3.12-venv
+python3 -m venv venv
+source venv/bin/activate  # Windowsなら venv\\Scripts\\activate
 ```
 
 ### パッケージのインストール
 
 ```bash
-pip install requests beautifulsoup4 mysql-connector-python
+pip install -r requirements.txt
+```
+
+#### パッケージを追加したときに `requirements.txt` を更新する
+
+```bash
+pip freeze > requirements.txt
 ```
 
 ### データベースの準備
 
 1. MySQLにデータベースを作成：
+```bash
+mysql -u root -h localhost -p
+```
 ```sql
 CREATE DATABASE scraping_db;
 USE scraping_db;
+GRANT all ON scraping_db.* TO 'your_user'@'localhost';
+ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 ```
 
 2. 必要なテーブルを作成：
@@ -140,10 +154,18 @@ pip install -r requirements.txt
 ```
 
 ### 2. データベースの準備（MySQL）
+```bash
+mysql -u root -h localhost -p
+```
 ```sql
 CREATE DATABASE scraping_db;
 USE scraping_db;
--- スキーマのインポート
+GRANT all ON scraping_db.* TO 'your_user'@'localhost';
+ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
+```
+
+- スキーマのインポート
+```bash
 mysql -u your_user -p scraping_db < schema/scraped_pages.sql
 mysql -u your_user -p scraping_db < schema/robots_rules.sql
 ```
@@ -162,7 +184,7 @@ DB_CONFIG = {
 テストファイルは `tests/` ディレクトリにあり、`pytest` で実行可能です：
 
 ```bash
-pytest tests/
+PYTHONPATH=. pytest
 ```
 
 特定のテストだけを実行したい場合：
