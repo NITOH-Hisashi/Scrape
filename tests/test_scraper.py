@@ -1,11 +1,19 @@
 import pytest
 from unittest.mock import patch, MagicMock, Mock
-from scraper import get_hash, scrape_page, should_scrape, extract_and_save_links, process_single_page
+from scraper import (
+    get_hash,
+    scrape_page,
+    should_scrape,
+    extract_and_save_links,
+    process_single_page,
+)
+
 
 def test_get_hash():
     text = "hello"
     expected_hash = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     assert get_hash(text) == expected_hash
+
 
 def test_scrape_page_valid_url():
     url = "https://example.com"
@@ -14,17 +22,21 @@ def test_scrape_page_valid_url():
     assert page.content is not None
     assert page.error_message is None
 
+
 def test_scrape_page_invalid_url():
     url = "https://invalid.url"
     page = scrape_page(url)
     assert page.url == url
     assert page.error_message is not None
 
+
 @patch("scraper.requests.get")
 def test_scrape_page_success_http(mock_get):
     mock_response = Mock()
     mock_response.status_code = 200
-    mock_response.text = "<html><head><title>Test Page</title></head><body>Content</body></html>"
+    mock_response.text = (
+        "<html><head><title>Test Page</title></head><body>Content</body></html>"
+    )
     mock_get.return_value = mock_response
     result = scrape_page("http://example.com")
     assert result.url == "http://example.com"
@@ -33,6 +45,7 @@ def test_scrape_page_success_http(mock_get):
     assert result.status_code == 200
     assert result.error_message is None
 
+
 @patch("scraper.requests.get")
 def test_scrape_failure_http(mock_get):
     mock_get.side_effect = Exception("Failed to fetch")
@@ -40,11 +53,14 @@ def test_scrape_failure_http(mock_get):
     assert result.url == "http://example.com"
     assert result.error_message == "Failed to fetch"
 
+
 @patch("scraper.requests.get")
 @patch("mysql.connector.connect")
 def test_scrape_success_db(mock_connect, mock_get):
     mock_get.return_value.status_code = 200
-    mock_get.return_value.text = "<html><body><a href='https://example.com'>Link</a></body></html>"
+    mock_get.return_value.text = (
+        "<html><body><a href='https://example.com'>Link</a></body></html>"
+    )
 
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
@@ -56,6 +72,7 @@ def test_scrape_success_db(mock_connect, mock_get):
     assert result.status_code == 200
     assert result.content is not None
 
+
 @patch("scraper.check_robots_rules")
 @patch("scraper.mark_page_as_processed")
 def test_should_scrape_blocked(mock_mark, mock_check):
@@ -64,6 +81,7 @@ def test_should_scrape_blocked(mock_mark, mock_check):
     assert result is False
     mock_mark.assert_called_once()
 
+
 @patch("scraper.check_robots_rules")
 @patch("time.sleep")
 def test_should_scrape_allowed_with_delay(mock_sleep, mock_check):
@@ -71,6 +89,7 @@ def test_should_scrape_allowed_with_delay(mock_sleep, mock_check):
     result = should_scrape("http://example.com", "TestBot")
     assert result is True
     mock_sleep.assert_called_once_with(2)
+
 
 @patch("scraper.extract_links")
 @patch("scraper.save_page_to_db")
@@ -82,13 +101,18 @@ def test_extract_and_save_links(mock_save, mock_extract):
     extract_and_save_links(page)
     mock_save.assert_called_once()
 
+
 @patch("scraper.should_scrape", return_value=True)
 @patch("scraper.scrape_page")
 @patch("scraper.save_page_to_db")
 @patch("scraper.extract_and_save_links")
 @patch("scraper.mark_page_as_processed")
-def test_process_single_page_success(mock_mark, mock_extract, mock_save, mock_scrape, mock_should):
-    mock_scrape.return_value = MagicMock(error_message=None, content="<html></html>", url="http://example.com")
+def test_process_single_page_success(
+    mock_mark, mock_extract, mock_save, mock_scrape, mock_should
+):
+    mock_scrape.return_value = MagicMock(
+        error_message=None, content="<html></html>", url="http://example.com"
+    )
     row = {"url": "http://example.com", "referrer": None}
     process_single_page(row, "TestBot")
     mock_save.assert_called_once()

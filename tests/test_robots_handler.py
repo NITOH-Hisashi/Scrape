@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from robots_handler import fetch_and_store_robots, check_robots_rules
 
+
 class TestRobotsHandler(unittest.TestCase):
 
     @patch("robots_handler.mysql.connector.connect")
@@ -33,12 +34,12 @@ class TestRobotsHandler(unittest.TestCase):
         mock_connect.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
 
-        mock_cursor.fetchone.side_effect = [{
-            "disallow": "/private",
-            "allow": "/public",
-            "crawl_delay": 3
-        }]
+        mock_cursor.fetchone.side_effect = [
+            {"disallow": "/private", "allow": "/public", "crawl_delay": 3}
+        ]
 
-        result, delay = check_robots_rules("https://example.com/public/page", "MyScraperBot")
+        result, delay = check_robots_rules(
+            "https://example.com/public/page", "MyScraperBot"
+        )
         self.assertTrue(result)
         self.assertEqual(delay, 3)

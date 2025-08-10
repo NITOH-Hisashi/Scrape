@@ -1,6 +1,12 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from models import ScrapedPage, save_page_to_db, get_unprocessed_page, mark_page_as_processed
+from models import (
+    ScrapedPage,
+    save_page_to_db,
+    get_unprocessed_page,
+    mark_page_as_processed,
+)
+
 
 class TestDBIntegration(unittest.TestCase):
 
@@ -31,7 +37,10 @@ class TestDBIntegration(unittest.TestCase):
         mock_cursor = MagicMock()
         mock_connect.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = {"url": "https://example.com", "processed": False}
+        mock_cursor.fetchone.return_value = {
+            "url": "https://example.com",
+            "processed": False,
+        }
 
         result = get_unprocessed_page()
         self.assertEqual(result["url"], "https://example.com")
@@ -47,6 +56,6 @@ class TestDBIntegration(unittest.TestCase):
 
         mock_cursor.execute.assert_called_with(
             "UPDATE scraped_pages SET processed = TRUE, error_message = %s WHERE url = %s",
-            ("No error", "https://example.com")
+            ("No error", "https://example.com"),
         )
         mock_conn.commit.assert_called()
