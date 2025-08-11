@@ -86,13 +86,23 @@ def extract_and_save_links(page):
 def process_single_page(row, user_agent):
     """1ページ分の処理をまとめる"""
     url = row["url"]
+    method = row.get("method", "GET").upper()
+    payload = row.get("payload", {})  # dict形式を想定
+
     if not should_scrape(url, user_agent):
         print(f"Skipping {url} (blocked by robots.txt)")
         return
-    page = scrape_page(url, row.get("referrer"))
+
+    if method == "POST":
+        page = fetch_post_content(url, data=payload, referrer=row.get("referrer"))
+    else:
+        page = scrape_page(url, row.get("referrer"))
+
     save_page_to_db(page)
+
     if page.error_message is None:
         extract_and_save_links(page)
+
     mark_page_as_processed(url)
 
 
