@@ -10,6 +10,7 @@ from models import (
 )
 from link_extractor import extract_links
 from robots_handler import check_robots_rules
+import argparse, json
 
 
 def get_hash(text):
@@ -117,7 +118,6 @@ def process_pages(user_agent="MyScraperBot"):
 
 def main():
     """CLI引数を処理してスクレイピングを開始"""
-    import argparse, json
 
     parser = argparse.ArgumentParser(
         description="Web scraping tool with robots.txt compliance"
