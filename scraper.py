@@ -117,7 +117,7 @@ def process_pages(user_agent="MyScraperBot"):
 
 def main():
     """CLI引数を処理してスクレイピングを開始"""
-    import argparse
+    import argparse, json
 
     parser = argparse.ArgumentParser(
         description="Web scraping tool with robots.txt compliance"
@@ -125,11 +125,29 @@ def main():
     parser.add_argument(
         "--user-agent",
         default="MyScraperBot",
-        help="User agent string to use for requests (default: MyScraperBot)",
+        help="User agent string to use for requests",
     )
+    parser.add_argument("--url", help="Target URL to scrape")
+    parser.add_argument("--referrer", help="Referrer URL")
+    parser.add_argument(
+        "--method", choices=["GET", "POST"], default="GET", help="HTTP method to use"
+    )
+    parser.add_argument("--payload", type=str, help="POST payload as JSON string")
+
     args = parser.parse_args()
     print(f"Starting scraper with User-Agent: {args.user_agent}")
-    process_pages(user_agent=args.user_agent)
+
+    if args.url:
+        payload_dict = json.loads(args.payload) if args.payload else {}
+        row = {
+            "url": args.url,
+            "referrer": args.referrer,
+            "method": args.method,
+            "payload": payload_dict,
+        }
+        process_single_page(row, user_agent=args.user_agent)
+    else:
+        process_pages(user_agent=args.user_agent)
 
 
 if __name__ == "__main__":
