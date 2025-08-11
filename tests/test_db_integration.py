@@ -39,6 +39,9 @@ class TestDBIntegration(unittest.TestCase):
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchone.return_value = {
             "url": "https://example.com",
+            "referrer": None,
+            "method": "GET",
+            "payload": "{}",
             "processed": False,
         }
 

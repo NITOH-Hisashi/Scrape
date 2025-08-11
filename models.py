@@ -116,7 +116,7 @@ def get_unprocessed_page():
         )
         row = cursor.fetchone()
         if row:
-            payload = json.loads(row["payload"]) if row["payload"] else {}
+            payload = json.loads(row.get("payload") or "{}") if row["payload"] else {}
             return {
                 "url": row["url"],
                 "referrer": row["referrer"],
