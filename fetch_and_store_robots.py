@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import mysql.connector
 from datetime import datetime, timedelta
-from datetime import datetime
+from datetime import datetime, UTC
 from urllib.parse import urljoin
 import hashlib
 from config import DB_CONFIG
@@ -100,6 +100,9 @@ def save_to_mysql(data):
     conn.close()
 
 
+from config import DB_CONFIG
+
+
 # robots.txtを取得してDBに保存する関数
 def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
     robots_url = f"https://{domain}/robots.txt"
@@ -111,16 +114,11 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
         allow = "\n".join(rp.allow_all if rp.allow_all else [])
         delay = rp.crawl_delay(user_agent)
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expires = now + timedelta(hours=24)
 
         # DB保存（UPSERT）
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="your_user",
-            password="your_password",
-            database="your_database",
-        )
+        conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute(
             """

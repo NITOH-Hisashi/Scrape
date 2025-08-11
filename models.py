@@ -1,6 +1,7 @@
 from datetime import datetime
 import mysql.connector
 from config import DB_CONFIG
+import json
 
 
 class ScrapedPage:
@@ -13,6 +14,8 @@ class ScrapedPage:
         status_code=None,
         hash_value=None,
         error_message=None,
+        method="GET",
+        payload=None,
     ):
         self.url = url
         self.referrer = referrer
@@ -23,6 +26,8 @@ class ScrapedPage:
         self.hash = hash_value
         self.error_message = error_message
         self.processed = False
+        self.method = method
+        self.payload = payload or {}
 
     def to_dict(self):
         return {
@@ -35,31 +40,52 @@ class ScrapedPage:
             "hash": self.hash,
             "error_message": self.error_message,
             "processed": self.processed,
+            "method": self.method,
+            "payload": json.dumps(self.payload),
         }
 
 
 def save_page_to_db(page):
-    """スクレイピング結果をデータベースに保存"""
+    """スクレイピング結果をデータベースに保存（POST対応）"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
-
     try:
         sql = """
-            INSERT INTO scraped_pages
-            (url, referrer, fetched_at, title, content, status_code, hash,
-             error_message, processed)
-            VALUES (%(url)s, %(referrer)s, %(fetched_at)s, %(title)s,
-                    %(content)s, %(status_code)s, %(hash)s,
-                    %(error_message)s, %(processed)s)
+            INSERT INTO scraped_pages (
+                url,
+                referrer,
+                fetched_at,
+                title, content,
+                status_code,
+                hash,
+                error_message,
+                processed,
+                method,
+                payload
+            )
+            VALUES (
+                %(url)s,
+                %(referrer)s,
+                %(fetched_at)s,
+                %(title)s, %(content)s,
+                %(status_code)s,
+                %(hash)s,
+                %(error_message)s,
+                %(processed)s,
+                %(method)s,
+                %(payload)s
+            )
             ON DUPLICATE KEY UPDATE
-            referrer = VALUES(referrer),
-            fetched_at = VALUES(fetched_at),
-            title = VALUES(title),
-            content = VALUES(content),
-            status_code = VALUES(status_code),
-            hash = VALUES(hash),
-            error_message = VALUES(error_message),
-            processed = VALUES(processed)
+                referrer = VALUES(referrer),
+                fetched_at = VALUES(fetched_at),
+                title = VALUES(title),
+                content = VALUES(content),
+                status_code = VALUES(status_code),
+                hash = VALUES(hash),
+                error_message = VALUES(error_message),
+                processed = VALUES(processed),
+                method = VALUES(method),
+                payload = VALUES(payload)
         """
         cursor.execute(sql, page.to_dict())
         conn.commit()
@@ -69,20 +95,29 @@ def save_page_to_db(page):
 
 
 def get_unprocessed_page():
-    """未処理のページを1件取得"""
+    """未処理のページを1件取得（POST対応）"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
-
     try:
         cursor.execute(
             """
-            SELECT * FROM scraped_pages
+            SELECT url, referrer, method, payload
+            FROM scraped_pages
             WHERE processed = FALSE
+            ORDER BY id ASC
             LIMIT 1
         """
         )
         row = cursor.fetchone()
-        return row
+        if row:
+            payload = json.loads(row.get("payload") or "{}") if row["payload"] else {}
+            return {
+                "url": row["url"],
+                "referrer": row["referrer"],
+                "method": row.get("method", "GET").upper(),
+                "payload": payload,
+            }
+        return None
     finally:
         cursor.close()
         conn.close()

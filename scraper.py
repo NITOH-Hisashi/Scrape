@@ -10,6 +10,8 @@ from models import (
 )
 from link_extractor import extract_links
 from robots_handler import check_robots_rules
+import argparse
+import json
 
 
 def get_hash(text):
@@ -50,6 +52,30 @@ def scrape_page(url, referrer=None):
         return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
 
 
+def fetch_post_content(url, data, referrer=None, headers=None):
+    """POSTリクエストでHTMLを取得し ScrapedPage を生成"""
+    try:
+        headers = headers or {}
+        if referrer:
+            headers["Referer"] = referrer
+        response = requests.post(url, data=data, headers=headers, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        title = soup.title.string if soup.title else ""
+        content = response.text
+        hash_value = get_hash(content)
+        return ScrapedPage(
+            url=url,
+            referrer=referrer,
+            title=title,
+            content=content,
+            status_code=response.status_code,
+            hash_value=hash_value,
+        )
+    except Exception as e:
+        return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
+
+
 def extract_and_save_links(page):
     """リンク抽出と保存"""
     soup = BeautifulSoup(page.content, "html.parser")
@@ -62,13 +88,23 @@ def extract_and_save_links(page):
 def process_single_page(row, user_agent):
     """1ページ分の処理をまとめる"""
     url = row["url"]
+    method = row.get("method", "GET").upper()
+    payload = row.get("payload", {})  # dict形式を想定
+
     if not should_scrape(url, user_agent):
         print(f"Skipping {url} (blocked by robots.txt)")
         return
-    page = scrape_page(url, row.get("referrer"))
+
+    if method == "POST":
+        page = fetch_post_content(url, data=payload, referrer=row.get("referrer"))
+    else:
+        page = scrape_page(url, row.get("referrer"))
+
     save_page_to_db(page)
+
     if page.error_message is None:
         extract_and_save_links(page)
+
     mark_page_as_processed(url)
 
 
@@ -83,7 +119,6 @@ def process_pages(user_agent="MyScraperBot"):
 
 def main():
     """CLI引数を処理してスクレイピングを開始"""
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Web scraping tool with robots.txt compliance"
@@ -91,11 +126,29 @@ def main():
     parser.add_argument(
         "--user-agent",
         default="MyScraperBot",
-        help="User agent string to use for requests (default: MyScraperBot)",
+        help="User agent string to use for requests",
     )
+    parser.add_argument("--url", help="Target URL to scrape")
+    parser.add_argument("--referrer", help="Referrer URL")
+    parser.add_argument(
+        "--method", choices=["GET", "POST"], default="GET", help="HTTP method to use"
+    )
+    parser.add_argument("--payload", type=str, help="POST payload as JSON string")
+
     args = parser.parse_args()
     print(f"Starting scraper with User-Agent: {args.user_agent}")
-    process_pages(user_agent=args.user_agent)
+
+    if args.url:
+        payload_dict = json.loads(args.payload) if args.payload else {}
+        row = {
+            "url": args.url,
+            "referrer": args.referrer,
+            "method": args.method,
+            "payload": payload_dict,
+        }
+        process_single_page(row, user_agent=args.user_agent)
+    else:
+        process_pages(user_agent=args.user_agent)
 
 
 if __name__ == "__main__":
