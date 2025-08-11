@@ -1,3 +1,4 @@
+# requests.post をモックするために必要
 from unittest.mock import patch, MagicMock, Mock
 from scraper import (
     get_hash,
@@ -6,16 +7,7 @@ from scraper import (
     extract_and_save_links,
     process_single_page,
 )
-import pytest
-from scraper import process_single_page, fetch_post_content
 from models import ScrapedPage
-from unittest.mock import patch, MagicMock
-
-
-# requests.post をモックするために必要
-from unittest.mock import patch, Mock
-
-
 from models import DB_CONFIG
 
 
