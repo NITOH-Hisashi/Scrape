@@ -1,4 +1,3 @@
-import unittest
 from bs4 import BeautifulSoup
 from link_extractor import extract_links, is_under_base, normalize_url
 
