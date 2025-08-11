@@ -28,7 +28,7 @@ jobs:
     - name: 🧪 Run tests with pytest
       run: |
         export PYTHONPATH="${{ github.workspace }}"
-        pytest --cov=scraper.py --cov=models.py --cov=link_extractor.py --cov=robots_handler.py \
+        pytest --cov=scraper --cov=models --cov=link_extractor --cov=robots_handler \
                --cov-report=xml tests/
 
     - name: 🧼 Run flake8 lint check
