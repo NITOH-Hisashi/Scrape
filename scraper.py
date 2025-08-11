@@ -50,6 +50,30 @@ def scrape_page(url, referrer=None):
         return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
 
 
+def fetch_post_content(url, data, referrer=None, headers=None):
+    """POSTリクエストでHTMLを取得し ScrapedPage を生成"""
+    try:
+        headers = headers or {}
+        if referrer:
+            headers["Referer"] = referrer
+        response = requests.post(url, data=data, headers=headers, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        title = soup.title.string if soup.title else ""
+        content = response.text
+        hash_value = get_hash(content)
+        return ScrapedPage(
+            url=url,
+            referrer=referrer,
+            title=title,
+            content=content,
+            status_code=response.status_code,
+            hash_value=hash_value,
+        )
+    except Exception as e:
+        return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
+
+
 def extract_and_save_links(page):
     """リンク抽出と保存"""
     soup = BeautifulSoup(page.content, "html.parser")
