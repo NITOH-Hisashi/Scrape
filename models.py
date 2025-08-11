@@ -30,8 +30,6 @@ class ScrapedPage:
         self.payload = payload or {}
 
     def to_dict(self):
-        import json
-
         return {
             "url": self.url,
             "referrer": self.referrer,
