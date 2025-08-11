@@ -10,7 +10,8 @@ from models import (
 )
 from link_extractor import extract_links
 from robots_handler import check_robots_rules
-import argparse, json
+import argparse
+import json
 
 
 def get_hash(text):
