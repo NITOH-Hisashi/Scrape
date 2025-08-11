@@ -1,6 +1,7 @@
 from datetime import datetime
 import mysql.connector
 from config import DB_CONFIG
+import json
 
 
 class ScrapedPage:
@@ -93,11 +94,6 @@ def save_page_to_db(page):
     finally:
         cursor.close()
         conn.close()
-
-
-import json
-import mysql.connector
-from config import DB_CONFIG
 
 
 def get_unprocessed_page():
