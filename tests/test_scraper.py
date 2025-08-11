@@ -6,6 +6,28 @@ from scraper import (
     extract_and_save_links,
     process_single_page,
 )
+import pytest
+from scraper import process_single_page, fetch_post_content
+from models import ScrapedPage
+from unittest.mock import patch, MagicMock
+
+
+# requests.post をモックするために必要
+from unittest.mock import patch, Mock
+
+
+from models import DB_CONFIG
+
+
+def test_db_config_override():
+    DB_CONFIG.update(
+        {
+            "host": "localhost",
+            "user": "test_user",
+            "password": "test_pass",
+            "database": "test_db",
+        }
+    )
 
 
 def test_get_hash():
@@ -117,3 +139,47 @@ def test_process_single_page_success(
     mock_save.assert_called_once()
     mock_extract.assert_called_once()
     mock_mark.assert_called_once()
+
+
+def test_fetch_post_content_success():
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.text = "<html><title>Test Page</title><body>Hello</body></html>"
+
+    with patch("scraper.requests.post", return_value=mock_response):
+        page = fetch_post_content(
+            "http://example.com", data={"key": "value"}, referrer="http://referrer.com"
+        )
+        assert isinstance(page, ScrapedPage)
+        assert page.title == "Test Page"
+        assert page.status_code == 200
+        assert page.error_message is None
+
+
+def test_process_single_page_post():
+    mock_page = ScrapedPage(
+        url="http://example.com",
+        referrer="http://referrer.com",
+        title="Mock Title",
+        content="<html></html>",
+        status_code=200,
+        hash_value="abc123",
+        method="POST",
+        payload={"key": "value"},
+    )
+
+    row = {
+        "url": "http://example.com",
+        "referrer": "http://referrer.com",
+        "method": "POST",
+        "payload": {"key": "value"},
+    }
+
+    with patch("scraper.fetch_post_content", return_value=mock_page), patch(
+        "scraper.check_robots_rules", return_value=(True, 0)
+    ), patch("models.mysql.connector.connect", return_value=MagicMock()), patch(
+        "scraper.extract_and_save_links"
+    ), patch(
+        "scraper.mark_page_as_processed"
+    ):
+        process_single_page(row, user_agent="TestBot")
