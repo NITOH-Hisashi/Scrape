@@ -1,0 +1,50 @@
+name: Run Tests and Lint
+
+on:
+  push:
+    branches: [ Development, main ]
+  pull_request:
+    branches: [ Development, main ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v3
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov flake8 black
+
+    - name: 🧪 Run tests with pytest
+      run: |
+        export PYTHONPATH="${{ github.workspace }}"
+        pytest --cov=scraper --cov=models --cov=link_extractor --cov=robots_handler \
+               --cov-report=xml tests/
+
+    - name: 🧼 Run flake8 lint check
+      run: |
+        flake8 scraper.py models.py link_extractor.py robots_handler.py tests \
+               --max-line-length=88 --exclude=__init__.py
+
+    - name: 🎨 Run black formatting check
+      run: |
+        black --check scraper.py models.py link_extractor.py robots_handler.py tests
+
+    - name: 📊 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: unittests
+        name: scrape-pytest
+        fail_ci_if_error: true
