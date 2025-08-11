@@ -95,7 +95,9 @@ def mark_page_as_processed(url, error_message=None):
 
     try:
         cursor.execute(
-            "UPDATE scraped_pages SET processed = TRUE, error_message = %s WHERE url = %s",
+            "UPDATE scraped_pages"
+            " SET processed = TRUE, error_message = %s"
+            " WHERE url = %s",
             (error_message, url),
         )
         conn.commit()
