@@ -45,11 +45,11 @@ def save_page_to_db(page):
 
     try:
         sql = """
-            INSERT INTO scraped_pages 
-            (url, referrer, fetched_at, title, content, status_code, hash, 
-             error_message, processed) 
-            VALUES (%(url)s, %(referrer)s, %(fetched_at)s, %(title)s, 
-                    %(content)s, %(status_code)s, %(hash)s, 
+            INSERT INTO scraped_pages
+            (url, referrer, fetched_at, title, content, status_code, hash,
+             error_message, processed)
+            VALUES (%(url)s, %(referrer)s, %(fetched_at)s, %(title)s,
+                    %(content)s, %(status_code)s, %(hash)s,
                     %(error_message)s, %(processed)s)
             ON DUPLICATE KEY UPDATE
             referrer = VALUES(referrer),
@@ -76,8 +76,8 @@ def get_unprocessed_page():
     try:
         cursor.execute(
             """
-            SELECT * FROM scraped_pages 
-            WHERE processed = FALSE 
+            SELECT * FROM scraped_pages
+            WHERE processed = FALSE
             LIMIT 1
         """
         )

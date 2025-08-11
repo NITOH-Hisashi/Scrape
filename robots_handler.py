@@ -24,7 +24,7 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
         expires = now + datetime.timedelta(hours=24)
 
         sql = """
-            INSERT INTO robots_rules 
+            INSERT INTO robots_rules
             (domain, user_agent, disallow, allow, crawl_delay, fetched_at, expires_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE
@@ -54,8 +54,8 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
         # robots_rulesテーブルをチェック
         cursor.execute(
             """
-            SELECT * FROM robots_rules 
-            WHERE domain = %s AND user_agent = %s 
+            SELECT * FROM robots_rules
+            WHERE domain = %s AND user_agent = %s
             AND expires_at > NOW()
         """,
             (domain, user_agent),
@@ -68,7 +68,7 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
             fetch_and_store_robots(domain, user_agent)
             cursor.execute(
                 """
-                SELECT * FROM robots_rules 
+                SELECT * FROM robots_rules
                 WHERE domain = %s AND user_agent = %s
             """,
                 (domain, user_agent),

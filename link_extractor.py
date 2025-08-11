@@ -11,24 +11,8 @@ def is_under_base(url, base_url):
     )
 
 
-def extract_links(soup, base_url):
-    """BeautifulSoupオブジェクトからリンクを抽出"""
-    links = []
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        full_url = urljoin(base_url, href)
-        if is_under_base(full_url, base_url):
-            title = a.get_text(strip=True)
-            # 画像がアンカー内にある場合
-            img = a.find("img")
-            if img:
-                alt = img.get("alt") or img.get("title") or ""
-                title = title or alt
-            links.append((full_url, title))
-    return links
-
-
 def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
+    """BeautifulSoupオブジェクトからリンクを抽出"""
     links = []
 
     # <a> タグの処理

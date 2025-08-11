@@ -55,7 +55,9 @@ class TestDBIntegration(unittest.TestCase):
         mark_page_as_processed("https://example.com", "No error")
 
         mock_cursor.execute.assert_called_with(
-            "UPDATE scraped_pages SET processed = TRUE, error_message = %s WHERE url = %s",
+            "UPDATE scraped_pages"
+            " SET processed = TRUE, error_message = %s"
+            " WHERE url = %s",
             ("No error", "https://example.com"),
         )
         mock_conn.commit.assert_called()
