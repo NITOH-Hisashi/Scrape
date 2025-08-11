@@ -1,4 +1,4 @@
-import pytest
+import unittest
 from unittest.mock import patch, MagicMock, Mock
 from scraper import (
     get_hash,
