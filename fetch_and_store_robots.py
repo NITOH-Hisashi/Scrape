@@ -100,6 +100,9 @@ def save_to_mysql(data):
     conn.close()
 
 
+from config import DB_CONFIG
+
+
 # robots.txtを取得してDBに保存する関数
 def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
     robots_url = f"https://{domain}/robots.txt"
@@ -115,12 +118,7 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
         expires = now + timedelta(hours=24)
 
         # DB保存（UPSERT）
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="your_user",
-            password="your_password",
-            database="your_database",
-        )
+        conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute(
             """

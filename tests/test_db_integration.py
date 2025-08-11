@@ -64,3 +64,7 @@ class TestDBIntegration(unittest.TestCase):
             ("No error", "https://example.com"),
         )
         mock_conn.commit.assert_called()
+
+
+if __name__ == "__main__":
+    unittest.main()
