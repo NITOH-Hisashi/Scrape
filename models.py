@@ -8,11 +8,13 @@ class ScrapedPage:
         self,
         url,
         referrer=None,
-        title=None,
-        content=None,
+        title="",
+        content="",
         status_code=None,
         hash_value=None,
         error_message=None,
+        method="GET",
+        payload=None,
     ):
         self.url = url
         self.referrer = referrer
@@ -23,6 +25,8 @@ class ScrapedPage:
         self.hash = hash_value
         self.error_message = error_message
         self.processed = False
+        self.method = method
+        self.payload = payload or {}
 
     def to_dict(self):
         return {
@@ -68,21 +72,35 @@ def save_page_to_db(page):
         conn.close()
 
 
+import json
+import mysql.connector
+from config import DB_CONFIG
+
+
 def get_unprocessed_page():
-    """未処理のページを1件取得"""
+    """未処理のページを1件取得（POST対応）"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
-
     try:
         cursor.execute(
             """
-            SELECT * FROM scraped_pages
+            SELECT url, referrer, method, payload
+            FROM scraped_pages
             WHERE processed = FALSE
+            ORDER BY id ASC
             LIMIT 1
         """
         )
         row = cursor.fetchone()
-        return row
+        if row:
+            payload = json.loads(row["payload"]) if row["payload"] else {}
+            return {
+                "url": row["url"],
+                "referrer": row["referrer"],
+                "method": row.get("method", "GET").upper(),
+                "payload": payload,
+            }
+        return None
     finally:
         cursor.close()
         conn.close()
