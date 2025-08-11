@@ -8,8 +8,8 @@ class ScrapedPage:
         self,
         url,
         referrer=None,
-        title="",
-        content="",
+        title=None,
+        content=None,
         status_code=None,
         hash_value=None,
         error_message=None,
@@ -29,6 +29,8 @@ class ScrapedPage:
         self.payload = payload or {}
 
     def to_dict(self):
+        import json
+
         return {
             "url": self.url,
             "referrer": self.referrer,
@@ -39,31 +41,52 @@ class ScrapedPage:
             "hash": self.hash,
             "error_message": self.error_message,
             "processed": self.processed,
+            "method": self.method,
+            "payload": json.dumps(self.payload),
         }
 
 
 def save_page_to_db(page):
-    """スクレイピング結果をデータベースに保存"""
+    """スクレイピング結果をデータベースに保存（POST対応）"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
-
     try:
         sql = """
-            INSERT INTO scraped_pages
-            (url, referrer, fetched_at, title, content, status_code, hash,
-             error_message, processed)
-            VALUES (%(url)s, %(referrer)s, %(fetched_at)s, %(title)s,
-                    %(content)s, %(status_code)s, %(hash)s,
-                    %(error_message)s, %(processed)s)
+            INSERT INTO scraped_pages (
+                url,
+                referrer,
+                fetched_at,
+                title, content,
+                status_code,
+                hash,
+                error_message,
+                processed,
+                method,
+                payload
+            )
+            VALUES (
+                %(url)s,
+                %(referrer)s,
+                %(fetched_at)s,
+                %(title)s, %(content)s,
+                %(status_code)s,
+                %(hash)s,
+                %(error_message)s,
+                %(processed)s,
+                %(method)s,
+                %(payload)s
+            )
             ON DUPLICATE KEY UPDATE
-            referrer = VALUES(referrer),
-            fetched_at = VALUES(fetched_at),
-            title = VALUES(title),
-            content = VALUES(content),
-            status_code = VALUES(status_code),
-            hash = VALUES(hash),
-            error_message = VALUES(error_message),
-            processed = VALUES(processed)
+                referrer = VALUES(referrer),
+                fetched_at = VALUES(fetched_at),
+                title = VALUES(title),
+                content = VALUES(content),
+                status_code = VALUES(status_code),
+                hash = VALUES(hash),
+                error_message = VALUES(error_message),
+                processed = VALUES(processed),
+                method = VALUES(method),
+                payload = VALUES(payload)
         """
         cursor.execute(sql, page.to_dict())
         conn.commit()
