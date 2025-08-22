@@ -100,6 +100,12 @@ python scraper.py --user-agent "CustomBot/1.0"
 INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE);
 ```
 
+### 推奨開発環境
+- VisualStudioCode
+  https://azure.microsoft.com/ja-jp/products/visual-studio-code
+- A5:SQL Mk-2
+  https://a5m2.mmatsubara.com/
+  
 ## データベーススキーマ
 
 ### scraped_pages テーブル
