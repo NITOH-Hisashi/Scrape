@@ -7,9 +7,29 @@ from scraper import (
     extract_and_save_links,
     process_single_page,
     fetch_post_content,
+    scrape,
 )
 from models import ScrapedPage
 from models import DB_CONFIG
+import requests
+
+
+class DummyResponse:
+    def __init__(self, text, status_code):
+        self.text = text
+        self.status_code = status_code
+
+    def raise_for_status(self):
+        if self.status_code != 200:
+            raise requests.RequestException("Error")
+
+
+def dummy_get(url, headers=None, timeout=None):
+    return DummyResponse("<html><head><title>Test Page</title></head><body>Content</body></html>", 200)
+
+
+def dummy_exception(*args, **kwargs):
+    raise Exception("Test exception")
 
 
 def test_db_config_override():
@@ -176,3 +196,30 @@ def test_process_single_page_post():
         "scraper.mark_page_as_processed"
     ):
         process_single_page(row, user_agent="TestBot")
+
+
+def test_scrape(monkeypatch):
+    # Monkey patch requests.get with our dummy_get
+    monkeypatch.setattr(requests, "get", dummy_get)
+    page = scrape("http://example.com")
+    assert isinstance(page, ScrapedPage)
+    assert page.title == "Test Page"
+    assert page.status_code == 200
+    assert "Content" in page.content
+
+
+def test_scrape_error(monkeypatch):
+    # Monkey patch requests.get to simulate an exception
+    monkeypatch.setattr(__import__('requests'), "get", dummy_exception)
+    page = scrape("http://example.com")
+    # Check that an error message is set
+    assert page.error_message == "Test exception"
+
+
+def test_get_hash():
+    text = "Hello"
+    hash_val = get_hash(text)
+    import hashlib
+
+    expected = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    assert hash_val == expected
