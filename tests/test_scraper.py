@@ -7,7 +7,6 @@ from scraper import (
     extract_and_save_links,
     process_single_page,
     fetch_post_content,
-    scrape,
 )
 from models import ScrapedPage
 from models import DB_CONFIG
