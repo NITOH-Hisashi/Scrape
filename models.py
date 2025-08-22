@@ -50,14 +50,25 @@ def save_page_to_db(page):
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     try:
+        # 値の型を安全に変換
+        page_dict = page.to_dict()
+        if page_dict.get("hash") is not None and not isinstance(page_dict["hash"], str):
+            # bytesやその他の型を文字列化（例: SHA256のbytes → hex文字列）
+            page_dict["hash"] = (
+                page_dict["hash"].hex()
+                if hasattr(page_dict["hash"], "hex")
+                else str(page_dict["hash"])
+            )
+
         sql = """
             INSERT INTO scraped_pages (
                 url,
                 referrer,
                 fetched_at,
-                title, content,
+                title,
+                content,
                 status_code,
-                hash,
+                `hash`,
                 error_message,
                 processed,
                 method,
@@ -67,7 +78,8 @@ def save_page_to_db(page):
                 %(url)s,
                 %(referrer)s,
                 %(fetched_at)s,
-                %(title)s, %(content)s,
+                %(title)s,
+                %(content)s,
                 %(status_code)s,
                 %(hash)s,
                 %(error_message)s,
@@ -81,13 +93,13 @@ def save_page_to_db(page):
                 title = VALUES(title),
                 content = VALUES(content),
                 status_code = VALUES(status_code),
-                hash = VALUES(hash),
+                `hash` = VALUES(`hash`),
                 error_message = VALUES(error_message),
                 processed = VALUES(processed),
                 method = VALUES(method),
                 payload = VALUES(payload)
         """
-        cursor.execute(sql, page.to_dict())
+        cursor.execute(sql, page_dict)
         conn.commit()
     finally:
         cursor.close()
