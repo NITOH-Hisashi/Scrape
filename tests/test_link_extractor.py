@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 from link_extractor import is_under_base, extract_links, normalize_url
-from urllib.parse import urljoin
 
 
 def test_is_under_base():

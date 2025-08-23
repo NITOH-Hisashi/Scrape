@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import mysql.connector
-from datetime import datetime
 import hashlib
 from urllib.parse import urlparse
 from fetch_and_store_robots import fetch_and_store_robots
@@ -27,7 +26,7 @@ def scrape(url, referrer=None):
             url=url,
             title=title,
             content=content,
-            status_code=response.status_code,
+            status_code=status_code,
             hash_value=hash_value,
             error_message=None,
         )
@@ -51,9 +50,17 @@ def save_to_mysql(data):
 
     try:
         sql = """
-            INSERT INTO scraped_pages 
-            (url, referrer, fetched_at, title, content, status_code, hash, 
-             error_message, processed) 
+            INSERT INTO scraped_pages (
+                url,
+                referrer,
+                fetched_at,
+                title,
+                content,
+                status_code,
+                hash,
+                error_message,
+                processed
+            )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, FALSE)
             ON DUPLICATE KEY UPDATE
             referrer = VALUES(referrer),
@@ -102,8 +109,8 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
         # robots_rulesテーブルをチェック
         cursor.execute(
             """
-            SELECT * FROM robots_rules 
-            WHERE domain = %s AND user_agent = %s 
+            SELECT * FROM robots_rules
+            WHERE domain = %s AND user_agent = %s
             AND expires_at > NOW()
         """,
             (domain, user_agent),
@@ -116,7 +123,7 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
             fetch_and_store_robots(domain, user_agent)
             cursor.execute(
                 """
-                SELECT * FROM robots_rules 
+                SELECT * FROM robots_rules
                 WHERE domain = %s AND user_agent = %s
             """,
                 (domain, user_agent),
