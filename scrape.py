@@ -4,8 +4,8 @@ import mysql.connector
 from datetime import datetime
 import hashlib
 from urllib.parse import urlparse
-import time
 from fetch_and_store_robots import fetch_and_store_robots
+from models import ScrapedPage
 
 
 # ハッシュ値を生成する関数
@@ -23,27 +23,23 @@ def scrape(url, referrer=None):
         title = soup.title.string if soup.title else ""
         content = response.text  # HTML全体を保存
         hash_value = get_hash(content)
-        return {
-            "url": url,
-            "referrer": referrer,
-            "fetched_at": datetime.now(),
-            "title": title,
-            "content": content,
-            "status_code": status_code,
-            "hash": hash_value,
-            "error_message": None,
-        }
+        return ScrapedPage(
+            url=url,
+            title=title,
+            content=content,
+            status_code=response.status_code,
+            hash_value=hash_value,
+            error_message=None,
+        )
     except Exception as e:
-        return {
-            "url": url,
-            "referrer": referrer,
-            "fetched_at": datetime.now(),
-            "title": None,
-            "content": None,
-            "status_code": None,
-            "hash": None,
-            "error_message": str(e),
-        }
+        return ScrapedPage(
+            url=url,
+            title=None,
+            content=None,
+            status_code=None,
+            hash_value=None,
+            error_message=str(e)
+        )
 
 
 # MySQLにスクレイピング結果を保存する関数
