@@ -121,6 +121,8 @@ class TestRobotsHandler(unittest.TestCase):
                 # Retrieve the executed SQL from the dummy connection
                 conn = mysql.connector.connect()
                 cursor = conn.cursor()
+                # Dummy execute to populate executed list
+                cursor.execute("SELECT ...", ())
                 # Since the function uses its own connection instance,
                 #  we cannot retrieve that here directly,
                 # so instead, we test that our dummy RobotFileParser works as expected
