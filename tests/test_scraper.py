@@ -11,6 +11,7 @@ from scraper import (
 from models import ScrapedPage
 from models import DB_CONFIG
 import requests
+from scrape import scrape
 
 
 class DummyResponse:
