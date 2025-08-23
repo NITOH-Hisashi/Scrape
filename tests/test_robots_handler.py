@@ -87,9 +87,13 @@ class TestRobotsHandler(unittest.TestCase):
 
     def test_fetch_and_store_robots_monkeypatch(self):
         # Monkey patch RobotFileParser using unittest.mock.patch
-        with patch("robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()):
+        with patch(
+            "robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()
+        ):
             # Monkey patch mysql.connector.connect using unittest.mock.patch
-            with patch("mysql.connector.connect", new=lambda **kwargs: DummyConnection()):
+            with patch(
+                "mysql.connector.connect", new=lambda **kwargs: DummyConnection()
+            ):
                 # Execute function
                 domain = "example.com"
                 fetch_and_store_robots(domain)
@@ -103,8 +107,12 @@ class TestRobotsHandler(unittest.TestCase):
                 delay = rp.crawl_delay("MyScraperBot")
                 self.assertEqual(delay, 5)
         # Monkey patch RobotFileParser and mysql.connector.connect using unittest.mock.patch
-        with patch("robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()):
-            with patch("mysql.connector.connect", new=lambda **kwargs: DummyConnection()):
+        with patch(
+            "robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()
+        ):
+            with patch(
+                "mysql.connector.connect", new=lambda **kwargs: DummyConnection()
+            ):
                 # Execute function
                 domain = "example.com"
                 fetch_and_store_robots(domain)
@@ -124,9 +132,11 @@ class TestRobotsHandler(unittest.TestCase):
 
     def test_fetch_and_store_robots_db_error(self):
         from unittest.mock import patch
+
         # Use dummy RobotFileParser for consistency
-        with patch("robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()), \
-             patch("mysql.connector.connect", side_effect=self.dummy_connect_fail):
+        with patch(
+            "robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()
+        ), patch("mysql.connector.connect", side_effect=self.dummy_connect_fail):
             with self.assertRaises(Exception) as context:
                 fetch_and_store_robots("example.com")
         self.assertIn("Database connection failed", str(context.exception))

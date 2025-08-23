@@ -38,7 +38,7 @@ def scrape(url, referrer=None):
             content=None,
             status_code=None,
             hash_value=None,
-            error_message=str(e)
+            error_message=str(e),
         )
 
 

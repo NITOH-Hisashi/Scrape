@@ -56,7 +56,9 @@ class TestFetchAndStoreRobots(unittest.TestCase):
     def dummy_get(self, url, headers=None):
         class DummyResponse:
             def __init__(self):
-                self.content = b"<html><head><title>Test Robots</title></head><body></body></html>"
+                self.content = (
+                    b"<html><head><title>Test Robots</title></head><body></body></html>"
+                )
                 self.status_code = 200
 
             def raise_for_status(self):
@@ -67,16 +69,19 @@ class TestFetchAndStoreRobots(unittest.TestCase):
     def test_scrape_valid(self):
         with patch("fetch_and_store_robots.requests.get", new=self.dummy_get):
             result = scrape("http://example.com", referrer="http://referrer.com")
-            self.assertEqual(result['title'], "Test Robots")
-            self.assertEqual(result['status_code'], 200)
+            self.assertEqual(result["title"], "Test Robots")
+            self.assertEqual(result["status_code"], 200)
 
     def dummy_get_fail(self, url, headers=None):
         raise requests.RequestException("fail test")
 
     def test_scrape_error(self):
-        with patch("fetch_and_store_robots.requests.get", side_effect=requests.RequestException("fail test")):
+        with patch(
+            "fetch_and_store_robots.requests.get",
+            side_effect=requests.RequestException("fail test"),
+        ):
             result = scrape("http://example.com")
-            self.assertEqual(result['error_message'], "fail test")
+            self.assertEqual(result["error_message"], "fail test")
 
 
 if __name__ == "__main__":

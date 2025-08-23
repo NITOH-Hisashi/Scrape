@@ -13,12 +13,12 @@ def test_is_under_base():
 
 def test_extract_links():
     base = "http://example.com/"
-    html = '''<html><body>
+    html = """<html><body>
         <a href="page1.html">Page 1</a>
         <a href="/page2.html">Page 2</a>
         <a href="http://example.org/">External</a>
-    </body></html>'''
-    soup = BeautifulSoup(html, 'html.parser')
+    </body></html>"""
+    soup = BeautifulSoup(html, "html.parser")
     links = extract_links(soup, base)
     extracted_urls = [link[0] for link in links]
     assert "http://example.com/page1.html" in extracted_urls
@@ -35,30 +35,28 @@ def test_normalize_url():
 
 def extract_links(soup, base):
     links = []
-    for a in soup.find_all('a', href=True):
-        url = a['href']
+    for a in soup.find_all("a", href=True):
+        url = a["href"]
         full_url = urljoin(base, url)
         if is_under_base(full_url, base):
             title = a.text.strip()
             # Use the alt attribute from an <img> tag if available
-            img = a.find('img')
-            if img and img.has_attr('alt') and img['alt'].strip():
-                title = img['alt'].strip()
+            img = a.find("img")
+            if img and img.has_attr("alt") and img["alt"].strip():
+                title = img["alt"].strip()
             links.append((full_url, title))
     return links
 
 
 def test_extract_links_img_alt():
     base = "http://example.com/"
-    html = '''<html><body>
+    html = """<html><body>
         <a href="page1.html"><img src="img.jpg" alt="Image ALT Text"></a>
-    </body></html>'''
-    soup = BeautifulSoup(html, 'html.parser')
+    </body></html>"""
+    soup = BeautifulSoup(html, "html.parser")
     links = extract_links(soup, base)
     assert len(links) == 1
     url, title = links[0]
     assert url == "http://example.com/page1.html"
     assert title == "Image ALT Text"
     return links
-
-

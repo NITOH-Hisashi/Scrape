@@ -25,7 +25,9 @@ class DummyResponse:
 
 
 def dummy_get(url, headers=None, timeout=None):
-    return DummyResponse("<html><head><title>Test Page</title></head><body>Content</body></html>", 200)
+    return DummyResponse(
+        "<html><head><title>Test Page</title></head><body>Content</body></html>", 200
+    )
 
 
 def dummy_exception(*args, **kwargs):
@@ -210,7 +212,7 @@ def test_scrape(monkeypatch):
 
 def test_scrape_error(monkeypatch):
     # Monkey patch requests.get to simulate an exception
-    monkeypatch.setattr(__import__('requests'), "get", dummy_exception)
+    monkeypatch.setattr(__import__("requests"), "get", dummy_exception)
     page = scrape("http://example.com")
     # Check that an error message is set
     assert page.error_message == "Test exception"
