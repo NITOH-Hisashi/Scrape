@@ -29,6 +29,8 @@
 ```bash
 sudo apt install python3-pip
 sudo apt install python3.12-venv
+sudo apt install black
+sudo apt install flake8
 python3 -m venv venv
 source venv/bin/activate  # Windowsなら venv\\Scripts\\activate
 ```
@@ -105,6 +107,12 @@ INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE)
   https://azure.microsoft.com/ja-jp/products/visual-studio-code
 - A5:SQL Mk-2
   https://a5m2.mmatsubara.com/
+
+### ドキュメントのフォーマット
+```bash
+black .
+flake8 .
+```
   
 ## データベーススキーマ
 
