@@ -7,8 +7,8 @@ def test_is_under_base():
     base = "http://example.com/path/"
     url_in = "http://example.com/path/page.html"
     url_out = "http://example.com/other/page.html"
-    assert is_under_base(url_in, base) == True
-    assert is_under_base(url_out, base) == False
+    assert is_under_base(url_in, base)
+    assert not is_under_base(url_out, base)
 
 
 def test_extract_links():
