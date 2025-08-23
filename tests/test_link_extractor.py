@@ -33,21 +33,6 @@ def test_normalize_url():
     assert normalized == "http://example.com/path/page.html"
 
 
-def extract_links(soup, base):
-    links = []
-    for a in soup.find_all("a", href=True):
-        url = a["href"]
-        full_url = urljoin(base, url)
-        if is_under_base(full_url, base):
-            title = a.text.strip()
-            # Use the alt attribute from an <img> tag if available
-            img = a.find("img")
-            if img and img.has_attr("alt") and img["alt"].strip():
-                title = img["alt"].strip()
-            links.append((full_url, title))
-    return links
-
-
 def test_extract_links_img_alt():
     base = "http://example.com/"
     html = """<html><body>
