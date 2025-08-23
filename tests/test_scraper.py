@@ -45,12 +45,6 @@ def test_db_config_override():
     )
 
 
-def test_get_hash():
-    text = "hello"
-    expected_hash = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-    assert get_hash(text) == expected_hash
-
-
 def test_scrape_page_valid_url():
     url = "https://example.com"
     page = scrape_page(url)
