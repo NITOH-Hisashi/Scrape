@@ -106,7 +106,8 @@ class TestRobotsHandler(unittest.TestCase):
                 rp.read()  # No-op for dummy
                 delay = rp.crawl_delay("MyScraperBot")
                 self.assertEqual(delay, 5)
-        # Monkey patch RobotFileParser and mysql.connector.connect using unittest.mock.patch
+        # Monkey patch RobotFileParser and mysql.connector.connect
+        #  using unittest.mock.patch
         with patch(
             "robots_handler.RobotFileParser", new=lambda: DummyRobotFileParser()
         ):
@@ -120,7 +121,8 @@ class TestRobotsHandler(unittest.TestCase):
                 # Retrieve the executed SQL from the dummy connection
                 conn = mysql.connector.connect()
                 cursor = conn.cursor()
-                # Since the function uses its own connection instance, we cannot retrieve that here directly,
+                # Since the function uses its own connection instance,
+                #  we cannot retrieve that here directly,
                 # so instead, we test that our dummy RobotFileParser works as expected
                 rp = DummyRobotFileParser()
                 rp.read()
