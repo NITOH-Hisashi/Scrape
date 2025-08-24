@@ -1,4 +1,3 @@
-# requests.post をモックするために必要
 from unittest.mock import patch, MagicMock, Mock
 from scraper import (
     get_hash,
@@ -8,8 +7,7 @@ from scraper import (
     process_single_page,
     fetch_post_content,
 )
-from models import ScrapedPage
-from models import DB_CONFIG
+from models import ScrapedPage, DB_CONFIG
 import requests
 from scrape import scrape
 
@@ -91,13 +89,11 @@ def test_scrape_success_db(mock_connect, mock_get):
     mock_get.return_value.text = (
         "<html><body><a href='https://example.com'>Link</a></body></html>"
     )
-
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_connect.return_value = mock_conn
     mock_conn.cursor.return_value = mock_cursor
     mock_cursor.fetchone.return_value = None
-
     result = scrape_page("https://example.com")
     assert result.status_code == 200
     assert result.content is not None
@@ -119,6 +115,14 @@ def test_should_scrape_allowed_with_delay(mock_sleep, mock_check):
     result = should_scrape("http://example.com", "TestBot")
     assert result is True
     mock_sleep.assert_called_once_with(2)
+
+
+# 追加: ディレイなしパターン
+@patch("scraper.check_robots_rules", return_value=(True, 0))
+def test_should_scrape_allowed_no_delay(mock_check):
+    result = should_scrape("http://example.com", "TestBot")
+    assert result is True
+    mock_check.assert_called_once()
 
 
 @patch("scraper.extract_links")
@@ -154,15 +158,44 @@ def test_fetch_post_content_success():
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.text = "<html><title>Test Page</title><body>Hello</body></html>"
-
     with patch("scraper.requests.post", return_value=mock_response):
         page = fetch_post_content(
             "http://example.com", data={"key": "value"}, referrer="http://referrer.com"
         )
-        assert isinstance(page, ScrapedPage)
-        assert page.title == "Test Page"
-        assert page.status_code == 200
-        assert page.error_message is None
+    assert isinstance(page, ScrapedPage)
+    assert page.title == "Test Page"
+    assert page.status_code == 200
+    assert page.error_message is None
+
+
+# POSTリクエスト失敗の異常系
+@patch("scraper.requests.post", side_effect=Exception("POST failed"))
+def test_fetch_post_content_error(mock_post):
+    page = fetch_post_content("http://example.com", data={"x": 1}, referrer=None)
+    assert page.error_message == "POST failed"
+    assert page.status_code is None
+
+
+# DB接続を完全モックしてエラー経路をカバー
+@patch("scraper.should_scrape", return_value=True)
+@patch("scraper.scrape_page", return_value=MagicMock(error_message="oops"))
+@patch("scraper.mark_page_as_processed")
+@patch("models.mysql.connector.connect", return_value=MagicMock())
+def test_process_single_page_scrape_error(
+    mock_connect, mock_mark, mock_scrape, mock_should
+):
+    row = {"url": "http://example.com"}
+    process_single_page(row, "TestBot")
+    mock_mark.assert_called_once()
+
+
+@patch("scraper.should_scrape", return_value=True)
+@patch("scraper.mark_page_as_processed")
+@patch("models.mysql.connector.connect", return_value=MagicMock())
+def test_process_single_page_unsupported_method(mock_connect, mock_mark, mock_should):
+    row = {"url": "http://example.com", "method": "PUT"}
+    process_single_page(row, "TestBot")
+    mock_mark.assert_called_once()
 
 
 def test_process_single_page_post():
@@ -176,14 +209,12 @@ def test_process_single_page_post():
         method="POST",
         payload={"key": "value"},
     )
-
     row = {
         "url": "http://example.com",
         "referrer": "http://referrer.com",
         "method": "POST",
         "payload": {"key": "value"},
     }
-
     with patch("scraper.fetch_post_content", return_value=mock_page), patch(
         "scraper.check_robots_rules", return_value=(True, 0)
     ), patch("models.mysql.connector.connect", return_value=MagicMock()), patch(
@@ -195,7 +226,6 @@ def test_process_single_page_post():
 
 
 def test_scrape(monkeypatch):
-    # Monkey patch requests.get with our dummy_get
     monkeypatch.setattr(requests, "get", dummy_get)
     page = scrape("http://example.com")
     assert isinstance(page, ScrapedPage)
@@ -205,10 +235,8 @@ def test_scrape(monkeypatch):
 
 
 def test_scrape_error(monkeypatch):
-    # Monkey patch requests.get to simulate an exception
     monkeypatch.setattr(__import__("requests"), "get", dummy_exception)
     page = scrape("http://example.com")
-    # Check that an error message is set
     assert page.error_message == "Test exception"
 
 
