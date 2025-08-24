@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="7" failures="0" skipped="0" tests="7" time="1.092" timestamp="2025-08-24T12:59:11.410657+09:00" hostname="DESKTOP-2E7V11N"><testcase classname="" name="tests.test_db_integration" file="tests/test_db_integration.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_db_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_db_integration.py:3: in &lt;module&gt;
+    from models import (
+E   ModuleNotFoundError: No module named 'models'</error></testcase><testcase classname="" name="tests.test_fetch_and_store_robots" file="tests/test_fetch_and_store_robots.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_fetch_and_store_robots.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_fetch_and_store_robots.py:3: in &lt;module&gt;
+    from fetch_and_store_robots import fetch_and_store_robots, scrape
+E   ModuleNotFoundError: No module named 'fetch_and_store_robots'</error></testcase><testcase classname="" name="tests.test_link_extractor" file="tests/test_link_extractor.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_link_extractor.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_link_extractor.py:2: in &lt;module&gt;
+    from link_extractor import is_under_base, extract_links, normalize_url
+E   ModuleNotFoundError: No module named 'link_extractor'</error></testcase><testcase classname="" name="tests.test_models" file="tests/test_models.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_models.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_models.py:3: in &lt;module&gt;
+    from models import (
+E   ModuleNotFoundError: No module named 'models'</error></testcase><testcase classname="" name="tests.test_robots_handler" file="tests/test_robots_handler.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_robots_handler.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_robots_handler.py:3: in &lt;module&gt;
+    from robots_handler import fetch_and_store_robots, check_robots_rules
+E   ModuleNotFoundError: No module named 'robots_handler'</error></testcase><testcase classname="" name="tests.test_save_page" file="tests/test_save_page.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_save_page.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_save_page.py:1: in &lt;module&gt;
+    from models import ScrapedPage, save_page_to_db
+E   ModuleNotFoundError: No module named 'models'</error></testcase><testcase classname="" name="tests.test_scraper" file="tests/test_scraper.py" time="0.000"><error message="collection failure">ImportError while importing test module '/home/user/Scrape/tests/test_scraper.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_scraper.py:3: in &lt;module&gt;
+    from scraper import (
+E   ModuleNotFoundError: No module named 'scraper'</error></testcase></testsuite></testsuites>
