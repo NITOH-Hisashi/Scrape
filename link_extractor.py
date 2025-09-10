@@ -15,7 +15,6 @@ def is_under_base(url, base_url):
 def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
     """BeautifulSoupオブジェクトからリンクを抽出"""
     links = []
-    base_domain = urlparse(base_url).netloc
 
     # <a> タグの処理
     for a_tag in soup.find_all("a", href=True):
