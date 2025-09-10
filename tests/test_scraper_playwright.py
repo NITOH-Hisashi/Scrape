@@ -12,8 +12,10 @@ def mock_playwright(monkeypatch):
             pass
 
         def content(self):
-            return "<html><head><title>Mock Title</title></head>" \
+            return (
+                "<html><head><title>Mock Title</title></head>"
                 "<body>Mock Content</body></html>"
+            )
 
         def title(self):
             return "Mock Title"

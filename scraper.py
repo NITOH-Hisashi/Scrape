@@ -34,6 +34,7 @@ def should_scrape(url, user_agent):
 def scrape_page(url, referrer=None):
     """HTML取得と ScrapedPage の生成"""
     from config import USE_PLAYWRIGHT_PATTERNS
+
     use_playwright = any(pat in url for pat in USE_PLAYWRIGHT_PATTERNS)
 
     try:
