@@ -12,6 +12,7 @@ from link_extractor import extract_links
 from robots_handler import check_robots_rules
 import argparse
 import json
+from playwright.sync_api import sync_playwright  # type: ignore
 
 
 def get_hash(text):
@@ -32,24 +33,48 @@ def should_scrape(url, user_agent):
 
 def scrape_page(url, referrer=None):
     """HTML取得と ScrapedPage の生成"""
+    from config import USE_PLAYWRIGHT_PATTERNS
+    use_playwright = any(pat in url for pat in USE_PLAYWRIGHT_PATTERNS)
+
     try:
-        headers = {"Referer": referrer} if referrer else {}
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-        title = soup.title.string if soup.title else ""
-        content = response.text
+        if use_playwright:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page_obj = browser.new_page()
+                if referrer:
+                    page_obj.set_extra_http_headers({"Referer": referrer})
+                page_obj.goto(url, wait_until="networkidle")
+                content = page_obj.content()
+                title = page_obj.title()
+                browser.close()
+                status_code = 200
+        else:
+            headers = {"Referer": referrer} if referrer else {}
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            content = response.text
+            soup = BeautifulSoup(content, "html.parser")
+            title = soup.title.string if soup.title else ""
+            status_code = response.status_code
         hash_value = get_hash(content)
         return ScrapedPage(
             url=url,
             referrer=referrer,
             title=title,
             content=content,
-            status_code=response.status_code,
+            status_code=status_code,
             hash_value=hash_value,
         )
     except Exception as e:
-        return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
+        return ScrapedPage(
+            url=url,
+            referrer=referrer,
+            title="",
+            content="",
+            status_code=None,
+            hash_value=None,
+            error_message=str(e),
+        )
 
 
 def fetch_post_content(url, data, referrer=None, headers=None):

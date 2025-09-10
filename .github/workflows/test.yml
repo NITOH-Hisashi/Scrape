@@ -48,3 +48,6 @@ jobs:
         flags: unittests
         name: scrape-pytest
         fail_ci_if_error: true
+
+    - name: Install Playwright browsers
+      run: playwright install

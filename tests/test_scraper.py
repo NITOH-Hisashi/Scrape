@@ -59,7 +59,8 @@ def test_scrape_page_invalid_url():
 
 
 @patch("scraper.requests.get")
-def test_scrape_page_success_http(mock_get):
+def test_scrape_page_success_http(mock_get, monkeypatch):
+    monkeypatch.setattr("config.USE_PLAYWRIGHT_PATTERNS", [])
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.text = (
@@ -75,7 +76,8 @@ def test_scrape_page_success_http(mock_get):
 
 
 @patch("scraper.requests.get")
-def test_scrape_failure_http(mock_get):
+def test_scrape_failure_http(mock_get, monkeypatch):
+    monkeypatch.setattr("config.USE_PLAYWRIGHT_PATTERNS", [])
     mock_get.side_effect = Exception("Failed to fetch")
     result = scrape_page("http://example.com")
     assert result.url == "http://example.com"

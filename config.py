@@ -4,3 +4,9 @@ DB_CONFIG = {
     "password": "your_password",
     "database": "scraping_db",
 }
+
+# Playwrightを使うURLパターン
+USE_PLAYWRIGHT_PATTERNS = [
+    "example.com",
+    "/dynamic/"
+]
