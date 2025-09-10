@@ -6,8 +6,9 @@ def is_under_base(url, base_url):
     """URLがベースURL配下かどうかをチェック"""
     parsed_url = urlparse(url)
     parsed_base = urlparse(base_url)
-    return parsed_url.netloc == parsed_base.netloc and parsed_url.path.startswith(
-        parsed_base.path
+    return (
+        parsed_url.netloc == parsed_base.netloc
+        and parsed_url.path.startswith(parsed_base.path)
     )
 
 
@@ -19,9 +20,11 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
     # <a> タグの処理
     for a_tag in soup.find_all("a", href=True):
         full_url = normalize_url(urljoin(base_url, a_tag["href"]))
-        # 外部リンクはスキップ
-        if urlparse(full_url).netloc != base_domain:
+
+        # 外部リンクやベースURL配下でないリンクはスキップ
+        if not is_under_base(full_url, base_url):
             continue
+
         text = a_tag.get_text(strip=True)
 
         # <img> タグの処理（alt属性をテキストとして使用）
