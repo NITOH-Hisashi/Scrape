@@ -56,7 +56,11 @@ mysql -u root -h localhost -p
 ```sql
 CREATE DATABASE scraping_db;
 USE scraping_db;
+CREATE USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 GRANT all ON scraping_db.* TO 'your_user'@'localhost';
+```
+パスワード変更
+```sql
 ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 ```
 
@@ -99,6 +103,7 @@ python scraper.py --user-agent "CustomBot/1.0"
 スクレイピング対象のURLをデータベースに追加します：
 
 ```sql
+USE scraping_db;
 INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE);
 ```
 
@@ -174,8 +179,8 @@ mysql -u root -h localhost -p
 ```sql
 CREATE DATABASE scraping_db;
 USE scraping_db;
+CREATE USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 GRANT all ON scraping_db.* TO 'your_user'@'localhost';
-ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 ```
 
 - スキーマのインポート
@@ -221,4 +226,4 @@ pip install pytest-mock
 - [BeautifulSoup ドキュメント](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 - [MySQLコネクタ/Python](https://dev.mysql.com/doc/connector-python/en/)
 - [MariaDBセットアップガイド](https://qiita.com/nanbuwks/items/c98c51744bd0f72a7087) https://qiita.com/nanbuwks/items/c98c51744bd0f72a7087
-
+- [MySQL | 新しいパスワードを設定する(SET PASSWORD 文、ALTER USER文)](https://www.javadrive.jp/mysql/user/index2.html) https://www.javadrive.jp/mysql/user/index2.html
