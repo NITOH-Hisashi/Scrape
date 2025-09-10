@@ -6,7 +6,4 @@ DB_CONFIG = {
 }
 
 # Playwrightを使うURLパターン
-USE_PLAYWRIGHT_PATTERNS = [
-    "example.com",
-    "/dynamic/"
-]
+USE_PLAYWRIGHT_PATTERNS = ["example.com", "/dynamic/"]

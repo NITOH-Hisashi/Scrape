@@ -6,9 +6,8 @@ def is_under_base(url, base_url):
     """URLがベースURL配下かどうかをチェック"""
     parsed_url = urlparse(url)
     parsed_base = urlparse(base_url)
-    return (
-        parsed_url.netloc == parsed_base.netloc
-        and parsed_url.path.startswith(parsed_base.path)
+    return parsed_url.netloc == parsed_base.netloc and parsed_url.path.startswith(
+        parsed_base.path
     )
 
 
