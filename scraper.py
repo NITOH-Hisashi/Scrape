@@ -53,8 +53,17 @@ def scrape_page(url, referrer=None):
         else:
             headers = {"Referer": referrer} if referrer else {}
             response = requests.get(url, headers=headers, timeout=10)
+            byte_size = len(response.content)
+            print(f"[DEBUG] Raw content size: {byte_size} bytes")
+
+            response.encoding = response.apparent_encoding
             response.raise_for_status()
             content = response.text
+
+            # バイト数を表示（UTF-8でエンコードした場合）
+            byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
+            print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
+
             if content.lstrip().startswith("<?xml"):
                 soup = BeautifulSoup(content, features="xml")
             else:
@@ -89,10 +98,19 @@ def fetch_post_content(url, data, referrer=None, headers=None):
         if referrer:
             headers["Referer"] = referrer
         response = requests.post(url, data=data, headers=headers, timeout=10)
+        byte_size = len(response.content)
+        print(f"[DEBUG] Raw content size: {byte_size} bytes")
+
+        response.encoding = response.apparent_encoding
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
         title = soup.title.string if soup.title else ""
         content = response.text
+
+        # バイト数を表示（UTF-8でエンコードした場合）
+        byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
+        print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
+
         hash_value = get_hash(content)
         return ScrapedPage(
             url=url,
