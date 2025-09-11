@@ -90,7 +90,7 @@ def save_page_to_db(page):
             ON DUPLICATE KEY UPDATE
                 referrer = VALUES(referrer),
                 fetched_at = VALUES(fetched_at),
-                title = VALUES(title),
+                -- titleは更新しない
                 content = VALUES(content),
                 status_code = VALUES(status_code),
                 `hash` = VALUES(`hash`),
@@ -118,7 +118,7 @@ def get_unprocessed_page():
             WHERE processed = FALSE
             ORDER BY id ASC
             LIMIT 1
-        """
+            """
         )
         row = cursor.fetchone()
         if row:
