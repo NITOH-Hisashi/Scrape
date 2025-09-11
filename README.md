@@ -100,6 +100,13 @@ python scraper.py --user-agent "CustomBot/1.0"
 
 ### スクレイピング対象の追加
 
+オプションの指定：
+```bash
+# カスタムUser-agentを指定して実行
+python scraper.py --url https://amus.biz
+```
+
+または、
 スクレイピング対象のURLをデータベースに追加します：
 
 ```sql

@@ -5,10 +5,11 @@ CREATE TABLE scraped_pages (
     method VARCHAR(10) NOT NULL DEFAULT 'GET',  -- HTTPメソッド（GET/POSTなど）
     payload JSON DEFAULT NULL,                  -- POSTデータなどをJSON形式で保存
     fetched_at DATETIME,                        -- 取得日時
-    title TEXT,                                 -- ページタイトル
+    title TEXT,                                 -- ページタイトル（リンク元アンカー文字列や画像のalt/title属性を保存）
     content LONGTEXT,                           -- ページ本文
     status_code INT,                            -- HTTPステータスコード
     hash TEXT,                                  -- 内容のハッシュ値（SHA-256など）
     error_message TEXT,                         -- エラー内容（取得失敗時）
-    processed BOOLEAN DEFAULT FALSE             -- 取得済みかどうかのフラグ
+    processed BOOLEAN DEFAULT FALSE,            -- 取得済みかどうかのフラグで「未処理のURL」を判定
+    UNIQUE KEY uniq_url (url(255))              -- URLをユニーク化（先頭255文字）
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
