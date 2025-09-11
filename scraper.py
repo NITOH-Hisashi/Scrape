@@ -133,11 +133,16 @@ def process_single_page(row, user_agent):
         page = scrape_page(url, row.get("referrer"))
 
     save_page_to_db(page)
-
-    if page.error_message is None:
+    if page.error_message is None and page.content and page.content.strip():
         extract_and_save_links(page)
-
-    mark_page_as_processed(url)
+        mark_page_as_processed(url)
+        print(f"Mark as processed for {url}")
+    elif page.error_message is not None:
+        # エラー時は再処理しないため processed=TRUE にする
+        mark_page_as_processed(url)
+        print(f"Mark as processed for {url} ({page.error_message})")
+    else:
+        print(f"Skipping mark as processed for {url} (error or empty content)")
 
 
 def process_pages(user_agent="MyScraperBot"):

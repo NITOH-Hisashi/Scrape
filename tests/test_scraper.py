@@ -147,7 +147,9 @@ def test_process_single_page_success(
     mock_mark, mock_extract, mock_save, mock_scrape, mock_should
 ):
     mock_scrape.return_value = MagicMock(
-        error_message=None, content="<html></html>", url="http://example.com"
+        error_message=None,
+        content="<html><body>dummy</body></html>",
+        url="http://example.com",
     )
     row = {"url": "http://example.com", "referrer": None}
     process_single_page(row, "TestBot")
