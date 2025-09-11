@@ -52,6 +52,12 @@ def save_page_to_db(page):
     try:
         # 値の型を安全に変換
         page_dict = page.to_dict()
+        byte_size = (
+            len(page_dict["content"].encode("utf-8", errors="ignore"))
+            if page_dict.get("content")
+            else 0
+        )
+        print(f"{page_dict['url']} page_dict content size: {byte_size} bytes")
         if page_dict.get("hash") is not None and not isinstance(page_dict["hash"], str):
             # bytesやその他の型を文字列化（例: SHA256のbytes → hex文字列）
             page_dict["hash"] = (
@@ -88,12 +94,12 @@ def save_page_to_db(page):
                 %(payload)s
             )
             ON DUPLICATE KEY UPDATE
-                referrer = VALUES(referrer),
+                referrer = COALESCE(VALUES(referrer), referrer),
                 fetched_at = VALUES(fetched_at),
                 -- titleは更新しない
-                content = VALUES(content),
-                status_code = VALUES(status_code),
-                `hash` = VALUES(`hash`),
+                content = COALESCE(VALUES(content), content),
+                status_code = COALESCE(VALUES(status_code), status_code),
+                `hash` = COALESCE(VALUES(`hash`), `hash`),
                 error_message = VALUES(error_message),
                 processed = VALUES(processed),
                 method = VALUES(method),
@@ -175,6 +181,18 @@ def reset_all_processed():
     try:
         cursor.execute("UPDATE scraped_pages SET processed = FALSE")
         conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def exists_in_db(url: str) -> bool:
+    """指定URLが scraped_pages に存在するかを返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
+        return cursor.fetchone() is not None
     finally:
         cursor.close()
         conn.close()

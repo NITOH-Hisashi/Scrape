@@ -8,6 +8,7 @@ from models import (
     get_unprocessed_page,
     mark_page_as_processed,
     get_page_counts,
+    exists_in_db,
 )
 from link_extractor import extract_links
 from robots_handler import check_robots_rules
@@ -53,21 +54,25 @@ def scrape_page(url, referrer=None):
         else:
             headers = {"Referer": referrer} if referrer else {}
             response = requests.get(url, headers=headers, timeout=10)
-            byte_size = len(response.content)
-            print(f"[DEBUG] Raw content size: {byte_size} bytes")
+            # byte_size = len(response.content)
+            # print(f"[DEBUG] Raw content size: {byte_size} bytes")
 
             response.encoding = response.apparent_encoding
             response.raise_for_status()
             content = response.text
 
             # バイト数を表示（UTF-8でエンコードした場合）
-            byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
-            print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
+            # byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
+            # print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
 
             if content.lstrip().startswith("<?xml"):
                 soup = BeautifulSoup(content, features="xml")
             else:
+                # print(f"[DEBUG] content(before parse)={repr(content)}")
                 soup = BeautifulSoup(content, "html.parser")
+                # print(f"[DEBUG] soup.title={soup.title}")
+                # print(f"[DEBUG] soup.title.string={soup.title.string if soup.title else None!r}")
+
             title = soup.title.string if soup.title else ""
             status_code = response.status_code
         hash_value = get_hash(content)
@@ -98,8 +103,8 @@ def fetch_post_content(url, data, referrer=None, headers=None):
         if referrer:
             headers["Referer"] = referrer
         response = requests.post(url, data=data, headers=headers, timeout=10)
-        byte_size = len(response.content)
-        print(f"[DEBUG] Raw content size: {byte_size} bytes")
+        # byte_size = len(response.content)
+        # print(f"[DEBUG] Raw content size: {byte_size} bytes")
 
         response.encoding = response.apparent_encoding
         response.raise_for_status()
@@ -108,8 +113,8 @@ def fetch_post_content(url, data, referrer=None, headers=None):
         content = response.text
 
         # バイト数を表示（UTF-8でエンコードした場合）
-        byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
-        print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
+        # byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
+        # print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
 
         hash_value = get_hash(content)
         return ScrapedPage(
@@ -132,8 +137,9 @@ def extract_and_save_links(page):
         soup = BeautifulSoup(page.content, "html.parser")
     links = extract_links(soup, page.url)
     for link_url, link_title in links:
-        new_page = ScrapedPage(url=link_url, referrer=page.url, title=link_title)
-        save_page_to_db(new_page)
+        if not exists_in_db(link_url):
+            new_page = ScrapedPage(url=link_url, referrer=page.url, title=link_title)
+            save_page_to_db(new_page)
 
 
 def process_single_page(row, user_agent):
