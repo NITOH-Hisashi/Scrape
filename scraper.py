@@ -62,7 +62,9 @@ def scrape_page(url, referrer=None):
             content = response.text
 
             # バイト数を表示（UTF-8でエンコードした場合）
-            # byte_size = len(content.encode(response.encoding or "utf-8", errors="ignore"))
+            # byte_size = len(
+            #   content.encode(response.encoding or "utf-8", errors="ignore")
+            # )
             # print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
 
             if content.lstrip().startswith("<?xml"):
@@ -71,7 +73,8 @@ def scrape_page(url, referrer=None):
                 # print(f"[DEBUG] content(before parse)={repr(content)}")
                 soup = BeautifulSoup(content, "html.parser")
                 # print(f"[DEBUG] soup.title={soup.title}")
-                # print(f"[DEBUG] soup.title.string={soup.title.string if soup.title else None!r}")
+                # print(f"[DEBUG] soup.title.string"
+                #      "={soup.title.string if soup.title else None!r}")
 
             title = soup.title.string if soup.title else ""
             status_code = response.status_code
