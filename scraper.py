@@ -173,9 +173,21 @@ def main():
         "--method", choices=["GET", "POST"], default="GET", help="HTTP method to use"
     )
     parser.add_argument("--payload", type=str, help="POST payload as JSON string")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="全レコードの processed を未処理(FALSE)にリセットしてから実行",
+    )
 
     args = parser.parse_args()
+
     print(f"Starting scraper with User-Agent: {args.user_agent}")
+
+    if args.reset:
+        from models import reset_all_processed
+
+        reset_all_processed()
+        print("✅ 全レコードの processed を未処理にリセットしました")
 
     # 実行前の件数表示
     unprocessed_count, processed_count = get_page_counts()

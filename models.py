@@ -166,3 +166,15 @@ def get_page_counts():
     finally:
         cursor.close()
         conn.close()
+
+
+def reset_all_processed():
+    """全レコードの processed を FALSE にする"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE scraped_pages SET processed = FALSE")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
