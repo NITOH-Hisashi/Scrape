@@ -127,9 +127,10 @@ def test_should_scrape_allowed_no_delay(mock_check):
     mock_check.assert_called_once()
 
 
+@patch("scraper.exists_in_db", return_value=False)
 @patch("scraper.extract_links")
 @patch("scraper.save_page_to_db")
-def test_extract_and_save_links(mock_save, mock_extract):
+def test_extract_and_save_links(mock_save, mock_extract, mock_exists):
     mock_extract.return_value = [("http://example.com/link", "Link Title")]
     page = MagicMock()
     page.content = "<html><a href='http://example.com/link'>Link</a></html>"
