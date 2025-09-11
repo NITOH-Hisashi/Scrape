@@ -202,5 +202,6 @@ def main():
     print(f"今回処理した件数: {processed_diff} 件")
     print(f"未処理: {unprocessed_after} 件, 処理済み: {processed_after} 件")
 
+
 if __name__ == "__main__":
     main()
