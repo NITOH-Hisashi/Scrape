@@ -2,11 +2,15 @@ beautifulsoup4==4.13.4
 certifi==2025.8.3
 charset-normalizer==3.4.3
 coverage==7.10.3
+greenlet==3.2.4
 idna==3.10
 iniconfig==2.1.0
+lxml==6.0.1
 mysql-connector-python==9.4.0
 packaging==25.0
+playwright==1.55.0
 pluggy==1.6.0
+pyee==13.0.0
 Pygments==2.19.2
 pytest==8.4.1
 pytest-cov==6.2.1

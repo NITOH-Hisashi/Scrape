@@ -17,17 +17,23 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
 
     # <a> タグの処理
     for a_tag in soup.find_all("a", href=True):
-        raw_href = a_tag["href"]
-        full_url = normalize_url(urljoin(base_url, raw_href))
-        text = a_tag.get_text(strip=True)
-        links.append((full_url, text))
+        full_url = normalize_url(urljoin(base_url, a_tag["href"]))
 
-    # <img> タグの処理（alt属性をテキストとして使用）
-    for img_tag in soup.find_all("img", src=True):
-        raw_src = img_tag["src"]
-        full_url = normalize_url(urljoin(base_url, raw_src))
-        alt = img_tag.get("alt", "")
-        links.append((full_url, alt))
+        # 外部リンクやベースURL配下でないリンクはスキップ
+        if not is_under_base(full_url, base_url):
+            continue
+
+        text = a_tag.get_text(strip=True)
+
+        # <img> タグの処理（alt属性をテキストとして使用）
+        img_tag = a_tag.find("img", alt=True)
+        if img_tag:
+            text += img_tag.get("alt", "").strip()
+        img_tag = a_tag.find("img", title=True)
+        if img_tag:
+            text += img_tag.get("title", "").strip()
+
+        links.append((full_url.strip(), text))
 
     return links
 

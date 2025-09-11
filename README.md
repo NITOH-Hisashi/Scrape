@@ -29,6 +29,8 @@
 ```bash
 sudo apt install python3-pip
 sudo apt install python3.12-venv
+sudo apt install black
+sudo apt install flake8
 python3 -m venv venv
 source venv/bin/activate  # Windowsなら venv\\Scripts\\activate
 ```
@@ -54,7 +56,11 @@ mysql -u root -h localhost -p
 ```sql
 CREATE DATABASE scraping_db;
 USE scraping_db;
+CREATE USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 GRANT all ON scraping_db.* TO 'your_user'@'localhost';
+```
+パスワード変更
+```sql
 ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 ```
 
@@ -94,12 +100,32 @@ python scraper.py --user-agent "CustomBot/1.0"
 
 ### スクレイピング対象の追加
 
+オプションの指定：
+```bash
+# カスタムUser-agentを指定して実行
+python scraper.py --url https://amus.biz
+```
+
+または、
 スクレイピング対象のURLをデータベースに追加します：
 
 ```sql
+USE scraping_db;
 INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE);
 ```
 
+### 推奨開発環境
+- VisualStudioCode
+  https://azure.microsoft.com/ja-jp/products/visual-studio-code
+- A5:SQL Mk-2
+  https://a5m2.mmatsubara.com/
+
+### ドキュメントのフォーマット
+```bash
+black .
+flake8 .
+```
+  
 ## データベーススキーマ
 
 ### scraped_pages テーブル
@@ -160,8 +186,8 @@ mysql -u root -h localhost -p
 ```sql
 CREATE DATABASE scraping_db;
 USE scraping_db;
+CREATE USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 GRANT all ON scraping_db.* TO 'your_user'@'localhost';
-ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
 ```
 
 - スキーマのインポート
@@ -199,6 +225,11 @@ pytest tests/test_scrape.py
 pip install pytest-mock
 ```
 
+## テーブル設計変更の時にテーブルを作り直す方法
+```bash
+mysql -u your_user -p scraping_db < recreate_scraped_pages.sql
+```
+
 ---
 
 ## 参考資料
@@ -207,4 +238,4 @@ pip install pytest-mock
 - [BeautifulSoup ドキュメント](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 - [MySQLコネクタ/Python](https://dev.mysql.com/doc/connector-python/en/)
 - [MariaDBセットアップガイド](https://qiita.com/nanbuwks/items/c98c51744bd0f72a7087) https://qiita.com/nanbuwks/items/c98c51744bd0f72a7087
-
+- [MySQL | 新しいパスワードを設定する(SET PASSWORD 文、ALTER USER文)](https://www.javadrive.jp/mysql/user/index2.html) https://www.javadrive.jp/mysql/user/index2.html

@@ -16,8 +16,8 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
 
     try:
         rp.read()
-        disallow = "\n".join(rp.disallow_all if hasattr(rp, "disallow_all") else [])
-        allow = "\n".join(rp.allow_all if hasattr(rp, "allow_all") else [])
+        disallow = "\n".join(["*"] if getattr(rp, "disallow_all", False) else [])
+        allow = "\n".join(["*"] if getattr(rp, "allow_all", False) else [])
         delay = rp.crawl_delay(user_agent)
 
         now = datetime.datetime.now(datetime.UTC)

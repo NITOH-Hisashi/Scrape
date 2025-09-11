@@ -4,12 +4,10 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 import mysql.connector
-from datetime import datetime, timedelta
-from datetime import datetime, UTC
+from datetime import datetime, timedelta, UTC
 from urllib.parse import urljoin
 import hashlib
 from config import DB_CONFIG
-from link_extractor import extract_links
 
 
 def extract_links(soup, base_url):
@@ -79,7 +77,16 @@ def save_to_mysql(data):
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     sql = """
-        INSERT INTO scraped_pages (url, referrer, fetched_at, title, content, status_code, hash, error_message)
+        INSERT INTO scraped_pages (
+            url,
+            referrer,
+            fetched_at,
+            title,
+            content,
+            status_code,
+            hash,
+            error_message
+        )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
     cursor.execute(
@@ -98,9 +105,6 @@ def save_to_mysql(data):
     conn.commit()
     cursor.close()
     conn.close()
-
-
-from config import DB_CONFIG
 
 
 # robots.txtを取得してDBに保存する関数
@@ -122,7 +126,15 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO robots_rules (domain, user_agent, disallow, allow, crawl_delay, fetched_at, expires_at)
+            INSERT INTO robots_rules (
+                domain,
+                user_agent,
+                disallow,
+                allow,
+                crawl_delay,
+                fetched_at,
+                expires_at
+            )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE
                 disallow = VALUES(disallow),
