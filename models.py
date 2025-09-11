@@ -151,3 +151,18 @@ def mark_page_as_processed(url, error_message=None):
     finally:
         cursor.close()
         conn.close()
+
+
+def get_page_counts():
+    """未処理件数と処理済み件数を返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = FALSE")
+        unprocessed_count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = TRUE")
+        processed_count = cursor.fetchone()[0]
+        return unprocessed_count, processed_count
+    finally:
+        cursor.close()
+        conn.close()

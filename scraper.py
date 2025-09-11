@@ -7,6 +7,7 @@ from models import (
     save_page_to_db,
     get_unprocessed_page,
     mark_page_as_processed,
+    get_page_counts,
 )
 from link_extractor import extract_links
 from robots_handler import check_robots_rules
@@ -175,6 +176,12 @@ def main():
     args = parser.parse_args()
     print(f"Starting scraper with User-Agent: {args.user_agent}")
 
+    # 実行前の件数表示
+    unprocessed_count, processed_count = get_page_counts()
+    print(f"未処理: {unprocessed_count} 件, 処理済み: {processed_count} 件")
+
+    processed_before = processed_count
+
     if args.url:
         payload_dict = json.loads(args.payload) if args.payload else {}
         row = {
@@ -189,6 +196,11 @@ def main():
     else:
         process_pages(user_agent=args.user_agent)
 
+    # 実行後の件数表示
+    unprocessed_after, processed_after = get_page_counts()
+    processed_diff = processed_after - processed_before
+    print(f"今回処理した件数: {processed_diff} 件")
+    print(f"未処理: {unprocessed_after} 件, 処理済み: {processed_after} 件")
 
 if __name__ == "__main__":
     main()
