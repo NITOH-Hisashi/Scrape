@@ -40,6 +40,7 @@
         "launchpadlib",
         "lazr",
         "LONGTEXT",
+        "lxml",
         "Marimo",
         "mdurl",
         "mkdocs",

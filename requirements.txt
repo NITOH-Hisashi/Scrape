@@ -5,6 +5,7 @@ coverage==7.10.3
 greenlet==3.2.4
 idna==3.10
 iniconfig==2.1.0
+lxml==6.0.1
 mysql-connector-python==9.4.0
 packaging==25.0
 playwright==1.55.0

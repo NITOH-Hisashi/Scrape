@@ -54,7 +54,10 @@ def scrape_page(url, referrer=None):
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             content = response.text
-            soup = BeautifulSoup(content, "html.parser")
+            if content.lstrip().startswith("<?xml"):
+                soup = BeautifulSoup(content, features="xml")
+            else:
+                soup = BeautifulSoup(content, "html.parser")
             title = soup.title.string if soup.title else ""
             status_code = response.status_code
         hash_value = get_hash(content)
@@ -104,7 +107,10 @@ def fetch_post_content(url, data, referrer=None, headers=None):
 
 def extract_and_save_links(page):
     """リンク抽出と保存"""
-    soup = BeautifulSoup(page.content, "html.parser")
+    if page.content.lstrip().startswith("<?xml"):
+        soup = BeautifulSoup(page.content, features="xml")
+    else:
+        soup = BeautifulSoup(page.content, "html.parser")
     links = extract_links(soup, page.url)
     for link_url, link_title in links:
         new_page = ScrapedPage(url=link_url, referrer=page.url, title=link_title)

@@ -225,6 +225,17 @@ pytest tests/test_scrape.py
 pip install pytest-mock
 ```
 
+## テーブル設計変更の時にテーブルを作り直す方法
+```bash
+mysql -u your_user -p scraping_db
+```
+```sql
+DROP TABLE IF EXISTS scraped_pages;
+```
+```bash
+mysql -u your_user -p scraping_db < schema/scraped_pages.sql
+```
+
 ---
 
 ## 参考資料
