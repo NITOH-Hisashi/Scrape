@@ -184,6 +184,8 @@ def main():
             "payload": payload_dict,
         }
         process_single_page(row, user_agent=args.user_agent)
+        # 最初のURL処理後に未処理ページも続けて処理
+        process_pages(user_agent=args.user_agent)
     else:
         process_pages(user_agent=args.user_agent)
 
