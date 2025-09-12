@@ -53,8 +53,8 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
                 if referrer:
                     page_obj.set_extra_http_headers({"Referer": referrer})
                 page_obj.goto(url, wait_until="networkidle")
-                content = await_or_call(page_obj.content)
-                title = (await_or_call(page_obj.title)) or urlparse(url).netloc
+                content = await_or_call(page_obj.content())
+                title = (await_or_call(page_obj.title())) or urlparse(url).netloc
                 browser.close()
                 status_code = 200
                 return ScrapedPage(
