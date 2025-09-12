@@ -2,8 +2,7 @@ from datetime import datetime
 import mysql.connector
 from config import DB_CONFIG
 import json
-from typing import Optional, Dict, Any
-
+from typing import Optional, Dict, Any, Tuple, Union
 
 class ScrapedPage:
     def __init__(
@@ -172,15 +171,13 @@ def get_page_counts():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = FALSE")
-        row = cursor.fetchone() # type: ignore
-        if row:
-            row: Optional[Dict[str, Any]] = row
-            unprocessed_count = row["0"]
+        unprocessed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = cursor.fetchone()
+        unprocessed_count = unprocessed_row[0] if unprocessed_row else 0 # type: ignore
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = TRUE")
-        row = cursor.fetchone()  # type: ignore
-        if row:
-            row: Optional[Dict[str, Any]] = row
-            processed_count = row["0"]
+        processed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = (
+            cursor.fetchone()
+        )
+        processed_count = processed_row[0] if processed_row else 0 # type: ignore
         return unprocessed_count, processed_count
     finally:
         cursor.close()
