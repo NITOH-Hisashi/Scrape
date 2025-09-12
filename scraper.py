@@ -172,7 +172,9 @@ def process_single_page(row, user_agent):
             mark_page_as_processed(url)
             print(f"Mark as processed for {url}")
         else:
-            print(f"Skipping mark as processed for {url} (empty content)")
+            # 空コンテンツでも再処理しない場合
+            mark_page_as_processed(url)
+            print(f"Mark as processed for {url} (empty content)")
     else:
         # エラー時は再処理しないため processed=TRUE にする
         mark_page_as_processed(url)
