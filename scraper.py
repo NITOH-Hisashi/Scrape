@@ -201,7 +201,8 @@ def process_pages(user_agent="MyScraperBot"):
     """未処理ページを順に処理"""
     while True:
         row = get_unprocessed_page()
-        if not row:
+        url = row["url"] if row else None
+        if not url:
             break
         process_single_page(row, user_agent)
 
