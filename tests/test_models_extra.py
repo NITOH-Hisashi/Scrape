@@ -1,5 +1,4 @@
 # tests/test_models_extra.py
-import types
 import pytest
 import models
 
