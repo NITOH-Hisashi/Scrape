@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import datetime
 import mysql.connector
 from config import DB_CONFIG
+from urllib.error import URLError
 
 
 def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
@@ -37,6 +38,10 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
 
         cursor.execute(sql, (domain, user_agent, disallow, allow, delay, now, expires))
         conn.commit()
+
+    except URLError as e:
+        print(f"[WARN] robots.txt取得失敗: {e}")
+        return
 
     finally:
         cursor.close()
