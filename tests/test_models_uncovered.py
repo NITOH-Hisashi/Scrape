@@ -142,18 +142,28 @@ def test_clear_error_messages(monkeypatch):
 
 
 def test_get_page_statistics(monkeypatch):
-    stats = {
-        "total_pages": 100,
-        "processed_pages": 80,
-        "unprocessed_pages": 20,
-        "avg_content_size": 512,
+    stats: dict[str, int] = {
+        "total_pages": 1,
+        "processed_pages": 1,
+        "unprocessed_pages": 0,
+        "avg_content_size": 10,
     }
     cursor = DummyCursor(fetch_result=stats)
     patch_conn(monkeypatch, cursor)
-    result = models.get_page_statistics()
-    assert (
-        result is not None and isinstance(result, dict) and result["total_pages"] == 100
-    )
+    raw_stats = models.get_page_statistics()
+    # Convert values to int only if they are not None and are of a compatible type
+    if raw_stats and isinstance(raw_stats, dict):
+        stats: dict[str, int] = {
+            k: int(str(v)) if v is not None else 0 for k, v in raw_stats.items()
+        }
+    else:
+        stats = {
+            "total_pages": 0,
+            "processed_pages": 0,
+            "unprocessed_pages": 0,
+            "avg_content_size": 0,
+        }
+    assert stats is not None and stats["total_pages"] == 1
 
 
 def test_get_page_by_id(monkeypatch):
@@ -168,3 +178,23 @@ def test_get_page_count(monkeypatch):
     cursor = DummyCursor(fetch_result={"COUNT(*)": 123})
     patch_conn(monkeypatch, cursor)
     assert models.get_page_count() == 123
+
+
+def test_get_unprocessed_page(monkeypatch):
+    row = {
+        "url": "http://example.com",
+        "referrer": None,
+        "method": "POST",
+        "payload": json.dumps({"a": 1}),
+    }
+    cursor = DummyCursor(fetch_result=row)
+    patch_conn(monkeypatch, cursor)
+    result = models.get_unprocessed_page()
+    assert result is not None and result.get("url") == "http://example.com"
+
+
+def test_mark_page_as_processed(monkeypatch):
+    cursor = DummyCursor()
+    conn = patch_conn(monkeypatch, cursor)
+    models.mark_page_as_processed("http://example.com", "err")
+    assert conn.committed
