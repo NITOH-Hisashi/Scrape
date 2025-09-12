@@ -77,7 +77,7 @@ def test_scrape_page_exception(monkeypatch):
     def raise_exc(*a, **k):
         raise Exception("fail")
 
-    monkeypatch.setattr(scraper.requests, "get", raise_exc)
+    monkeypatch.setattr("scraper.requests.get", raise_exc)
 
     page = scraper.scrape_page("http://example.com")
     assert page.error_message is not None
