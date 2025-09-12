@@ -210,9 +210,21 @@ def test_process_single_page_scrape_error(
 
 
 @patch("scraper.should_scrape", return_value=True)
+@patch("scraper.scrape_page")
 @patch("scraper.mark_page_as_processed")
 @patch("models.mysql.connector.connect", return_value=MagicMock())
-def test_process_single_page_unsupported_method(mock_connect, mock_mark, mock_should):
+def test_process_single_page_unsupported_method(mock_connect, mock_mark, mock_scrape, mock_should):
+    mock_scrape.return_value = MagicMock(
+        url="http://example.com",
+        content="<html><body>dummy</body></html>",  # ← 文字列にする
+        error_message=None,
+        title="Dummy Title",
+        method="PUT",
+        payload=None,
+        referrer=None,
+        status_code=200,
+        hash_value="abc123"
+    )
     row = {"url": "http://example.com", "method": "PUT"}
     process_single_page(row, "TestBot")
     mock_mark.assert_called_once()
