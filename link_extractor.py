@@ -28,10 +28,11 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
         # <img> タグの処理（alt属性をテキストとして使用）
         img_tag = a_tag.find("img", alt=True)
         if img_tag:
-            text += img_tag.get("alt", "").strip()
+            text += " " + img_tag.get("alt", "").strip()
         img_tag = a_tag.find("img", title=True)
         if img_tag:
-            text += img_tag.get("title", "").strip()
+            text += " " + img_tag.get("title", "").strip()
+        text = " ".join(text.split())  # 余分な空白を削除
 
         links.append((full_url.strip(), text))
 

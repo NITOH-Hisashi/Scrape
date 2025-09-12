@@ -83,6 +83,7 @@
         "Spyder",
         "spyderproject",
         "spyproject",
+        "ufeff",
         "unittests",
         "urllib",
         "venv",
