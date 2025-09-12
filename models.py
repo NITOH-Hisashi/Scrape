@@ -366,16 +366,83 @@ def mark_all_as_unprocessed():
         conn.close()
 
 
+def update_error_message(url: str, error_message: str):
+    """指定URLのエラーメッセージを更新"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE scraped_pages SET error_message = %s WHERE url = %s",
+            (error_message, url),
+        )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
 
 
+def get_error_messages():
+    """全ページのエラーメッセージを取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT url, error_message FROM scraped_pages WHERE error_message IS NOT NULL")
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
 
 
+def clear_error_messages():
+    """全ページのエラーメッセージをクリア"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE scraped_pages SET error_message = NULL")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
 
 
+def get_page_statistics():
+    """ページの統計情報を取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT 
+                COUNT(*) AS total_pages,
+                SUM(CASE WHEN processed = TRUE THEN 1 ELSE 0 END) AS processed_pages,
+                SUM(CASE WHEN processed = FALSE THEN 1 ELSE 0 END) AS unprocessed_pages,
+                AVG(LENGTH(content)) AS avg_content_size
+            FROM scraped_pages
+        """)
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
 
 
+def get_page_by_id(page_id: int):
+    """指定IDのページ情報を取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM scraped_pages WHERE id = %s", (page_id,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
 
 
-
-
-
+def get_page_count():
+    """scraped_pages テーブルの全レコード数を返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM scraped_pages")
+        return cursor.fetchone()["COUNT(*)"]  # type: ignore
+    finally:
+        cursor.close()
+        conn.close()
