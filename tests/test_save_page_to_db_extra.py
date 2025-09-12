@@ -56,11 +56,11 @@ def test_save_page_to_db_with_content_and_bytes_hash(monkeypatch):
     models.save_page_to_db(page)
 
     # SQLとパラメータが渡っていること
-    assert "INSERT INTO scraped_pages" in cursor.executed_sql
+    assert "INSERT INTO scraped_pages" in cursor.executed_sql # type: ignore
     # hashがhex文字列に変換されていること
-    assert cursor.executed_params["hash"] == "123456"
+    assert cursor.executed_params["hash"] == "123456" # type: ignore
     # contentのバイト数が計算されているので0ではない
-    assert len(cursor.executed_params["content"].encode("utf-8")) > 0
+    assert len(cursor.executed_params["content"].encode("utf-8")) > 0 # type: ignore
     assert conn.committed is True
 
 
@@ -87,7 +87,7 @@ def test_save_page_to_db_without_content_and_str_hash(monkeypatch):
     models.save_page_to_db(page)
 
     # contentがNoneなのでbyte_size=0
-    assert cursor.executed_params["content"] is None
+    assert cursor.executed_params["content"] is None # type: ignore
     # hashはそのまま
-    assert cursor.executed_params["hash"] == "abcdef"
+    assert cursor.executed_params["hash"] == "abcdef" # type: ignore
     assert conn.committed is True

@@ -53,6 +53,6 @@ def test_scrape_page_with_playwright(monkeypatch, mock_playwright):
     page = scrape_page("https://mocksite.com/page")
     assert isinstance(page, ScrapedPage)
     assert page.title == "Mock Title"
-    assert "Mock Content" in page.content
+    assert page.content is not None and "Mock Content" in page.content
     assert page.status_code == 200
     assert page.error_message is None

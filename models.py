@@ -141,7 +141,12 @@ def get_unprocessed_page() -> Optional[Dict[str, Any]]:
                 "method": row.get("method", "GET").upper(),
                 "payload": payload,
             }
-        return None
+        return {
+            "url": None,
+            "referrer": None,
+            "method": "GET",
+            "payload": {},
+        }
     finally:
         cursor.close()
         conn.close()
