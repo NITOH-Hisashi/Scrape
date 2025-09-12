@@ -392,7 +392,10 @@ def get_error_messages():
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute(
-            "SELECT url, error_message FROM scraped_pages WHERE error_message IS NOT NULL"
+            "SELECT url,"
+            "error_message"
+            "FROM scraped_pages"
+            "WHERE error_message IS NOT NULL"
         )
         return cursor.fetchall()
     finally:
@@ -421,8 +424,14 @@ def get_page_statistics():
             """
             SELECT 
                 COUNT(*) AS total_pages,
-                SUM(CASE WHEN processed = TRUE THEN 1 ELSE 0 END) AS processed_pages,
-                SUM(CASE WHEN processed = FALSE THEN 1 ELSE 0 END) AS unprocessed_pages,
+                SUM(
+                CASE WHEN processed = TRUE
+                THEN 1 ELSE 0 END
+                ) AS processed_pages,
+                SUM(
+                CASE WHEN processed = FALSE
+                THEN 1 ELSE 0 END
+                ) AS unprocessed_pages,
                 AVG(LENGTH(content)) AS avg_content_size
             FROM scraped_pages
         """
