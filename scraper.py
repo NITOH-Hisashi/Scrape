@@ -1,7 +1,9 @@
+import types
 import requests
 from bs4 import BeautifulSoup
 import hashlib
 import time
+from urllib.parse import urlparse
 from models import (
     ScrapedPage,
     save_page_to_db,
@@ -10,7 +12,7 @@ from models import (
     get_page_counts,
     exists_in_db,
 )
-from link_extractor import extract_links
+from link_extractor import extract_links, extract_title
 from robots_handler import check_robots_rules
 import argparse
 import json
@@ -34,10 +36,13 @@ def should_scrape(url, user_agent):
     return True
 
 
-def scrape_page(url, referrer=None):
+def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
     """HTML取得と ScrapedPage の生成"""
+    url = (url or "").strip()
     if not url:
-        return ScrapedPage(url=None, error_message="URL is None")
+        return ScrapedPage(
+            url=None, title=None, content="", error_message="URL is empty"
+        )
     use_playwright = any(pat in url for pat in USE_PLAYWRIGHT_PATTERNS)
 
     try:
@@ -48,10 +53,13 @@ def scrape_page(url, referrer=None):
                 if referrer:
                     page_obj.set_extra_http_headers({"Referer": referrer})
                 page_obj.goto(url, wait_until="networkidle")
-                content = page_obj.content()
-                title = page_obj.title()
+                content = await_or_call(page_obj.content)
+                title = (await_or_call(page_obj.title)) or urlparse(url).netloc
                 browser.close()
                 status_code = 200
+                return ScrapedPage(
+                    url=url, title=title, content=content, error_message=None
+                )
         else:
             headers = {"Referer": referrer} if referrer else {}
             response = requests.get(url, headers=headers, timeout=10)
@@ -60,7 +68,7 @@ def scrape_page(url, referrer=None):
 
             response.encoding = response.apparent_encoding
             response.raise_for_status()
-            content = response.text
+            content = response.text or ""
 
             # バイト数を表示（UTF-8でエンコードした場合）
             # byte_size = len(
@@ -77,7 +85,7 @@ def scrape_page(url, referrer=None):
                 # print(f"[DEBUG] soup.title.string"
                 #      "={soup.title.string if soup.title else None!r}")
 
-            title = soup.title.string if soup.title else ""
+            title = extract_title(content) or urlparse(url).netloc
             status_code = response.status_code
         hash_value = get_hash(content)
         return ScrapedPage(
@@ -87,17 +95,25 @@ def scrape_page(url, referrer=None):
             content=content,
             status_code=status_code,
             hash_value=hash_value,
+            error_message=None,
         )
     except Exception as e:
         return ScrapedPage(
             url=url,
             referrer=referrer,
-            title="",
+            title=None,
             content="",
             status_code=None,
             hash_value=None,
             error_message=str(e),
         )
+
+
+def await_or_call(value):
+    """値がawaitableならawaitし、そうでなければそのまま返す"""
+    if isinstance(value, types.CoroutineType) or hasattr(value, "__await__"):
+        return value.__await__().__next__()
+    return value
 
 
 def fetch_post_content(url, data, referrer=None, headers=None):

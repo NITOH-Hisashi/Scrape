@@ -43,3 +43,21 @@ def normalize_url(url):
     """URLを正規化（クエリパラメータの削除など）"""
     parsed = urlparse(url)
     return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+
+
+def extract_title(html_content):
+    """HTMLからタイトルを抽出"""
+
+    try:
+
+        soup = BeautifulSoup(html_content, "html.parser")
+
+        if soup.title and soup.title.string:
+
+            return soup.title.string.strip()
+
+    except Exception:
+
+        pass
+
+    return None
