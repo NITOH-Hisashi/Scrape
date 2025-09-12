@@ -2,6 +2,7 @@
 import pytest
 from link_extractor import is_under_base
 
+
 @pytest.mark.parametrize(
     "url, base_url, expected",
     [
@@ -20,13 +21,12 @@ from link_extractor import is_under_base
         ("http://sub.example.com/path", "http://example.com/path", False),
     ],
 )
-
 def test_is_under_base(url, base_url, expected):
     assert is_under_base(url, base_url) is expected
+
 
 def test_is_under_base_invalid_url():
     """無効なURLの場合はFalseを返す"""
     assert is_under_base("not a url", "http://example.com") is False
     assert is_under_base("http://example.com", "not a url") is False
     assert is_under_base("not a url", "also not a url") is False
-

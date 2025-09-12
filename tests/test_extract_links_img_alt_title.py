@@ -31,10 +31,10 @@ def test_extract_links_with_img_alt_and_title():
     # alt属性が先に追加されている
     assert text.index("AltText") < text.index("TitleText")
     # 余分な空白が入っていない
-    assert text.strip() == "LinkText AltText TitleText" 
+    assert text.strip() == "LinkText AltText TitleText"
     assert "  " not in text
     assert "\n" not in text
-    assert "\t" not in text 
+    assert "\t" not in text
     assert "\r" not in text
     assert "\x0b" not in text
     assert "\x0c" not in text
@@ -60,7 +60,7 @@ def test_extract_links_with_img_alt_and_title():
     assert "\u200a" not in text
     assert "\u202f" not in text
     assert "\u205f" not in text
-    assert "\u3000" not in text 
+    assert "\u3000" not in text
     assert "\u180e" not in text
     assert "\u200b" not in text
     assert "\u200c" not in text
@@ -75,4 +75,3 @@ def test_extract_links_with_img_alt_and_title():
     assert "\u2067" not in text
     assert "\u2068" not in text
     assert "\u2069" not in text
-    

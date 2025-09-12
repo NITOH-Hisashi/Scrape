@@ -34,4 +34,3 @@ def test_extract_links_with_img_title():
     assert "\n" not in text
     assert "\t" not in text
     assert "\r" not in text
-
