@@ -422,7 +422,7 @@ def get_page_statistics():
     try:
         cursor.execute(
             """
-            SELECT 
+            SELECT
                 COUNT(*) AS total_pages,
                 SUM(
                 CASE WHEN processed = TRUE
