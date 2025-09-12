@@ -15,6 +15,7 @@ class ScrapedPage:
         hash_value=None,
         error_message=None,
         method="GET",
+        processed=False,
         payload=None,
     ):
         self.url = url
