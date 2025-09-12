@@ -4,6 +4,7 @@ from config import DB_CONFIG
 import json
 from typing import Optional, Dict, Any, Tuple, Union
 
+
 class ScrapedPage:
     def __init__(
         self,
@@ -127,7 +128,7 @@ def get_unprocessed_page() -> Optional[Dict[str, Any]]:
             LIMIT 1
             """
         )
-        row = cursor.fetchone() # type: ignore
+        row = cursor.fetchone()  # type: ignore
         if row:
             row: Optional[Dict[str, Any]] = row
             # payloadがJSON文字列なら辞書に変換
@@ -176,13 +177,15 @@ def get_page_counts():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = FALSE")
-        unprocessed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = cursor.fetchone()
-        unprocessed_count = unprocessed_row[0] if unprocessed_row else 0 # type: ignore
+        unprocessed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = (
+            cursor.fetchone()
+        )
+        unprocessed_count = unprocessed_row[0] if unprocessed_row else 0  # type: ignore
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = TRUE")
         processed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = (
             cursor.fetchone()
         )
-        processed_count = processed_row[0] if processed_row else 0 # type: ignore
+        processed_count = processed_row[0] if processed_row else 0  # type: ignore
         return unprocessed_count, processed_count
     finally:
         cursor.close()
@@ -219,7 +222,7 @@ def get_page_by_url(url: str):
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute("SELECT * FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
-        row = cursor.fetchone() # type: ignore
+        row = cursor.fetchone()  # type: ignore
         if row:
             row: Optional[Dict[str, Any]] = row
             if row.get("payload"):
@@ -296,7 +299,7 @@ def get_all_urls():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT url FROM scraped_pages")
-        rows = cursor.fetchall() # type: ignore
+        rows = cursor.fetchall()  # type: ignore
         if rows:
             rows: list = rows
             for row in rows:
@@ -388,7 +391,9 @@ def get_error_messages():
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT url, error_message FROM scraped_pages WHERE error_message IS NOT NULL")
+        cursor.execute(
+            "SELECT url, error_message FROM scraped_pages WHERE error_message IS NOT NULL"
+        )
         return cursor.fetchall()
     finally:
         cursor.close()
@@ -412,14 +417,16 @@ def get_page_statistics():
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT 
                 COUNT(*) AS total_pages,
                 SUM(CASE WHEN processed = TRUE THEN 1 ELSE 0 END) AS processed_pages,
                 SUM(CASE WHEN processed = FALSE THEN 1 ELSE 0 END) AS unprocessed_pages,
                 AVG(LENGTH(content)) AS avg_content_size
             FROM scraped_pages
-        """)
+        """
+        )
         return cursor.fetchone()
     finally:
         cursor.close()

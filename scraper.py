@@ -28,8 +28,8 @@ def should_scrape(url, user_agent):
     if not allowed:
         mark_page_as_processed(url, "Blocked by robots.txt")
         return False
-    if float(delay) > 0.0: # type: ignore
-        time.sleep(delay) # type: ignore
+    if float(delay) > 0.0:  # type: ignore
+        time.sleep(delay)  # type: ignore
     return True
 
 

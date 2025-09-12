@@ -102,4 +102,3 @@ def test_mark_page_as_processed_no_error(monkeypatch):
     # パラメータにURLとNoneのエラーメッセージが含まれていること
     last_params = cursor._execute_calls[-1][1]
     assert last_params == (None, "http://example.com")
-

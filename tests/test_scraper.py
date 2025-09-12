@@ -72,7 +72,10 @@ def test_scrape_page_success_http(mock_get, monkeypatch):
     assert result.title == "Test Page"
     content = result.content
     assert content is not None
-    assert content == "<html><head><title>Test Page</title></head><body>Content</body></html>"
+    assert (
+        content
+        == "<html><head><title>Test Page</title></head><body>Content</body></html>"
+    )
     assert result.status_code == 200
     assert result.error_message is None
 
@@ -238,7 +241,10 @@ def test_scrape(monkeypatch):
     assert isinstance(page, ScrapedPage)
     assert page.title == "Test Page"
     assert page.status_code == 200
-    assert page.content == "<html><head><title>Test Page</title></head><body>Content</body></html>"
+    assert (
+        page.content
+        == "<html><head><title>Test Page</title></head><body>Content</body></html>"
+    )
 
 
 def test_scrape_error(monkeypatch):

@@ -79,20 +79,20 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
             return True, 0  # ルールが取得できない場合はデフォルトで許可
 
         # rulesを明示的に辞書型にキャスト
-        rules_dict = dict(rules.items()) # type: ignore
+        rules_dict = dict(rules.items())  # type: ignore
 
         # パスに対するアクセス可否を判定
         path = urlparse(url).path or "/"
 
         # Disallowルールをチェック
         if rules_dict["disallow"]:
-            for pattern in rules_dict["disallow"].split("\n"): # type: ignore
+            for pattern in rules_dict["disallow"].split("\n"):  # type: ignore
                 if pattern and path.startswith(str(pattern)):
                     return False, 0
 
         # Allowルールをチェック
         if rules_dict["allow"]:
-            for pattern in rules_dict["allow"].split("\n"): # type: ignore
+            for pattern in rules_dict["allow"].split("\n"):  # type: ignore
                 if pattern and path.startswith(str(pattern)):
                     return True, rules_dict["crawl_delay"] or 0
 
