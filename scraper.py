@@ -15,6 +15,7 @@ from robots_handler import check_robots_rules
 import argparse
 import json
 from playwright.sync_api import sync_playwright  # type: ignore
+from config import USE_PLAYWRIGHT_PATTERNS
 
 
 def get_hash(text):
@@ -35,8 +36,8 @@ def should_scrape(url, user_agent):
 
 def scrape_page(url, referrer=None):
     """HTML取得と ScrapedPage の生成"""
-    from config import USE_PLAYWRIGHT_PATTERNS
-
+    if not url:
+        return ScrapedPage(url=None, error_message="URL is None")
     use_playwright = any(pat in url for pat in USE_PLAYWRIGHT_PATTERNS)
 
     try:
@@ -147,6 +148,10 @@ def extract_and_save_links(page):
 
 def process_single_page(row, user_agent):
     """1ページ分の処理をまとめる"""
+    url = row.get("url")
+    if not url:
+        print(f"[WARN] URLがNoneまたは空のためスキップ: {row}")
+        return
     url = row["url"]
     method = row.get("method", "GET").upper()
     payload = row.get("payload", {})  # dict形式を想定
