@@ -2,6 +2,7 @@ from datetime import datetime
 import mysql.connector
 from config import DB_CONFIG
 import json
+from typing import Optional, Dict, Any
 
 
 class ScrapedPage:
@@ -113,7 +114,7 @@ def save_page_to_db(page):
         conn.close()
 
 
-def get_unprocessed_page():
+def get_unprocessed_page() -> Optional[Dict[str, Any]]:
     """未処理のページを1件取得（POST対応）"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
@@ -127,9 +128,14 @@ def get_unprocessed_page():
             LIMIT 1
             """
         )
-        row = cursor.fetchone()
+        row = cursor.fetchone() # type: ignore
         if row:
-            payload = json.loads(row.get("payload") or "{}") if row["payload"] else {}
+            row: Optional[Dict[str, Any]] = row
+            # payloadがJSON文字列なら辞書に変換
+            # type: Optional[Dict[str, Any]]
+            payload = (
+                json.loads(row.get("payload") or "{}") if row.get("payload") else {}
+            )
             return {
                 "url": row["url"],
                 "referrer": row["referrer"],
@@ -166,9 +172,15 @@ def get_page_counts():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = FALSE")
-        unprocessed_count = cursor.fetchone()[0]
+        row = cursor.fetchone() # type: ignore
+        if row:
+            row: Optional[Dict[str, Any]] = row
+            unprocessed_count = row["0"]
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = TRUE")
-        processed_count = cursor.fetchone()[0]
+        row = cursor.fetchone()  # type: ignore
+        if row:
+            row: Optional[Dict[str, Any]] = row
+            processed_count = row["0"]
         return unprocessed_count, processed_count
     finally:
         cursor.close()
@@ -205,8 +217,9 @@ def get_page_by_url(url: str):
     cursor = conn.cursor(dictionary=True)
     try:
         cursor.execute("SELECT * FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
-        row = cursor.fetchone()
+        row = cursor.fetchone() # type: ignore
         if row:
+            row: Optional[Dict[str, Any]] = row
             if row.get("payload"):
                 row["payload"] = json.loads(row["payload"])
             return row
@@ -266,7 +279,10 @@ def count_pages():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages")
-        return cursor.fetchone()[0]
+        row = cursor.fetchone()  # type: ignore
+        if row:
+            row: Optional[Dict[str, Any]] = row
+            return row["0"]
     finally:
         cursor.close()
         conn.close()
@@ -278,7 +294,13 @@ def get_all_urls():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT url FROM scraped_pages")
-        return [row[0] for row in cursor.fetchall()]
+        rows = cursor.fetchall() # type: ignore
+        if rows:
+            rows: list = rows
+            for row in rows:
+                row: Optional[Dict[str, Any]] = row
+                if row:
+                    yield row["url"]
     finally:
         cursor.close()
         conn.close()
@@ -290,7 +312,13 @@ def get_processed_urls():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT url FROM scraped_pages WHERE processed = TRUE")
-        return [row[0] for row in cursor.fetchall()]
+        rows = cursor.fetchall()  # type: ignore
+        if rows:
+            rows: list = rows
+            for row in rows:
+                row: Optional[Dict[str, Any]] = row
+                if row:
+                    yield row["url"]
     finally:
         cursor.close()
         conn.close()
@@ -302,7 +330,13 @@ def get_unprocessed_urls():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT url FROM scraped_pages WHERE processed = FALSE")
-        return [row[0] for row in cursor.fetchall()]
+        rows = cursor.fetchall()  # type: ignore
+        if rows:
+            rows: list = rows
+            for row in rows:
+                row: Optional[Dict[str, Any]] = row
+                if row:
+                    yield row["url"]
     finally:
         cursor.close()
         conn.close()
