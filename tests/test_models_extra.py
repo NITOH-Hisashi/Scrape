@@ -70,3 +70,483 @@ def test_exists_in_db(monkeypatch, exists):
     result = models.exists_in_db("http://example.com")
     assert result is exists
     assert "SELECT 1 FROM scraped_pages" in cursor._execute_calls[0][0]
+
+
+def test_mark_page_as_processed(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com", error_message="Some error")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == ("Some error", "http://example.com")
+    # error_messageがNoneの場合もテスト
+    models.mark_page_as_processed("http://example.com")
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
+
+
+def test_mark_page_as_processed_no_error(monkeypatch):
+    cursor = DummyCursor()
+    conn = DummyConn(cursor)
+    monkeypatch.setattr(models.mysql.connector, "connect", lambda **kwargs: conn)
+
+    models.mark_page_as_processed("http://example.com")
+    # UPDATE文が実行されていること
+    assert any("UPDATE scraped_pages" in call[0] for call in cursor._execute_calls)
+    assert conn.committed is True
+    # パラメータにURLとNoneのエラーメッセージが含まれていること
+    last_params = cursor._execute_calls[-1][1]
+    assert last_params == (None, "http://example.com")
