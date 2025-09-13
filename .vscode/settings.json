@@ -54,7 +54,6 @@
         "pixi",
         "platformdirs",
         "pluggy",
-        "postfail",
         "pyasn",
         "pybuilder",
         "pycache",

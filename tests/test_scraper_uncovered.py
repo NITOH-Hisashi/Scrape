@@ -88,10 +88,11 @@ def test_fetch_post_content_exception(monkeypatch):
     monkeypatch.setattr(
         scraper.requests,
         "post",
-        lambda *a, **k: (_ for _ in ()).throw(Exception("postfail")),
+        lambda *a,
+        **k: (_ for _ in ()).throw(Exception("postFail")),
     )
     page = scraper.fetch_post_content("http://x", data={})
-    assert page.error_message is not None and "postfail" in page.error_message
+    assert page.error_message is not None and "postFail" in page.error_message
 
 
 def test_extract_and_save_links_existing(monkeypatch):
