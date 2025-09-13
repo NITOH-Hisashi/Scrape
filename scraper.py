@@ -17,7 +17,7 @@ from robots_handler import check_robots_rules
 import argparse
 import json
 from playwright.sync_api import sync_playwright  # type: ignore
-from config import USE_PLAYWRIGHT_PATTERNS
+from environment.config import USE_PLAYWRIGHT_PATTERNS
 
 
 def get_hash(text):

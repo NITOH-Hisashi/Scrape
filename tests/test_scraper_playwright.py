@@ -1,6 +1,6 @@
 import pytest
 import types
-import config
+import environment.config as config
 from scraper import scrape_page, ScrapedPage
 
 

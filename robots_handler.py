@@ -2,7 +2,7 @@ from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse
 import datetime
 import mysql.connector
-from config import DB_CONFIG
+from environment.config import DB_CONFIG
 from urllib.error import URLError
 
 

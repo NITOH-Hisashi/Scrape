@@ -1,6 +1,6 @@
 from datetime import datetime
 import mysql.connector
-from config import DB_CONFIG
+from environment.config import DB_CONFIG
 import json
 from typing import Optional, Dict, Any, Tuple, Union
 

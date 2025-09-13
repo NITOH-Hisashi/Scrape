@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock, Mock
-import config
+import environment.config as config
 from scraper import (
     get_hash,
     scrape_page,

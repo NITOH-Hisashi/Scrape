@@ -5,6 +5,7 @@ import hashlib
 from urllib.parse import urlparse
 from fetch_and_store_robots import fetch_and_store_robots
 from models import ScrapedPage
+from environment.config import DB_CONFIG
 
 
 # ハッシュ値を生成する関数
@@ -43,7 +44,8 @@ def scrape(url, referrer=None):
 
 # MySQLにスクレイピング結果を保存する関数
 def save_to_mysql(data):
-    from config import DB_CONFIG
+    if not data:
+        return
 
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
@@ -98,8 +100,7 @@ def is_under_base(url, base_url):
 
 # robots.txtのルールをチェックする関数
 def check_robots_rules(url, user_agent="MyScraperBot"):
-    from config import DB_CONFIG
-
+    """robots.txtのルールをチェック"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
 

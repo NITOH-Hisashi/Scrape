@@ -1,7 +1,7 @@
 # tests/test_scraper_uncovered.py
 import types
 import scraper
-import config
+import environment.config as config
 import models
 
 

@@ -7,7 +7,7 @@ import mysql.connector
 from datetime import datetime, timedelta, UTC
 from urllib.parse import urljoin
 import hashlib
-from config import DB_CONFIG
+from environment.config import DB_CONFIG
 
 
 def extract_links(soup, base_url):
