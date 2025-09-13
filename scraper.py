@@ -43,10 +43,11 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
         return ScrapedPage(
             url=None, title=None, content="", error_message="URL is empty"
         )
-    use_playwright = any(pat in url for pat in USE_PLAYWRIGHT_PATTERNS)
+    use_playwright, matched_pattern = match_playwright_pattern(url)
 
     try:
         if use_playwright:
+            print(f"[Info.] Playwright判定 ('{matched_pattern}') に一致 URL ('{url}')")
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page_obj = browser.new_page()
