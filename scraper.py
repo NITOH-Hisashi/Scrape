@@ -110,6 +110,15 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
         )
 
 
+# Playwrightを使うべきURLか判定
+def match_playwright_pattern(url: str) -> tuple[bool, str | None]:
+    """Playwrightを使うべきURLか判定"""
+    for pat in USE_PLAYWRIGHT_PATTERNS:
+        if pat in url:
+            return True, pat
+    return False, None
+
+
 def await_or_call(value):
     """値がawaitableならawaitし、そうでなければそのまま返す"""
     if isinstance(value, types.CoroutineType) or hasattr(value, "__await__"):
