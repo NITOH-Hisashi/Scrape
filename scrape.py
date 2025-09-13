@@ -15,6 +15,11 @@ def get_hash(text):
 
 # スクレイピングを行う関数
 def scrape(url, referrer=None):
+    url = (url or "").strip()
+    if not url:
+        return ScrapedPage(
+            url=None, title=None, content="", error_message="URL is empty"
+        )
     try:
         headers = {"Referer": referrer} if referrer else {}
         response = requests.get(url, headers=headers, timeout=10)
