@@ -25,6 +25,9 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov flake8 black
 
+    - name: Set up config for CI
+      run: cp environment.config.py environment/config.py
+
     - name: Install Playwright browsers
       run: playwright install --with-deps chromium
 
