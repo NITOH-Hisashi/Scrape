@@ -3,6 +3,7 @@ import types
 import config
 from scraper import scrape_page, ScrapedPage
 
+
 class DummyPage:
     def __init__(self, title="Mock Title", content="<html></html>"):
         self._title = title

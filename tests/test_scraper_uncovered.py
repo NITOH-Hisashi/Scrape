@@ -78,7 +78,7 @@ def test_scrape_page_exception(monkeypatch):
     monkeypatch.setattr(
         scraper.requests,
         "get",
-        lambda *a, **k: (_ for _ in ()).throw(Exception("getFail"))
+        lambda *a, **k: (_ for _ in ()).throw(Exception("getFail")),
     )
 
     page = scraper.scrape_page("https://x.com")
@@ -90,8 +90,7 @@ def test_fetch_post_content_exception(monkeypatch):
     monkeypatch.setattr(
         scraper.requests,
         "post",
-        lambda *a,
-        **k: (_ for _ in ()).throw(Exception("postFail")),
+        lambda *a, **k: (_ for _ in ()).throw(Exception("postFail")),
     )
     page = scraper.fetch_post_content("https://x.com", data={})
     assert page.error_message is not None and "postFail" in page.error_message

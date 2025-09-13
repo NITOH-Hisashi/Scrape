@@ -76,14 +76,14 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
             # )
             # print(f"[DEBUG] {url} の取得サイズ: {byte_size} bytes")
 
-            if content.lstrip().startswith("<?xml"):
-                soup = BeautifulSoup(content, features="xml")
-            else:
-                # print(f"[DEBUG] content(before parse)={repr(content)}")
-                soup = BeautifulSoup(content, "html.parser")
-                # print(f"[DEBUG] soup.title={soup.title}")
-                # print(f"[DEBUG] soup.title.string"
-                #      "={soup.title.string if soup.title else None!r}")
+            # if content.lstrip().startswith("<?xml"):
+            #     soup = BeautifulSoup(content, features="xml")
+            # else:
+            #     print(f"[DEBUG] content(before parse)={repr(content)}")
+            #     soup = BeautifulSoup(content, "html.parser")
+            #     print(f"[DEBUG] soup.title={soup.title}")
+            #     print(f"[DEBUG] soup.title.string"
+            #           "={soup.title.string if soup.title else None!r}")
 
             title = extract_title(content) or urlparse(url).netloc
             status_code = response.status_code
