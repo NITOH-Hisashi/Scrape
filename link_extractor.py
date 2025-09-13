@@ -17,7 +17,7 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
 
     # <a> タグの処理
     for a_tag in soup.find_all("a", href=True):
-        full_url = normalize_url(urljoin(base_url, a_tag["href"]))
+        full_url = normalize_url(urljoin(base_url, a_tag["href"]))  # type: ignore
 
         # 外部リンクやベースURL配下でないリンクはスキップ
         if not is_under_base(full_url, base_url):
@@ -26,12 +26,13 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> list[tuple[str, str]]:
         text = a_tag.get_text(strip=True)
 
         # <img> タグの処理（alt属性をテキストとして使用）
-        img_tag = a_tag.find("img", alt=True)
+        img_tag = a_tag.find("img", attrs={"alt": True})  # type: ignore
         if img_tag:
-            text += img_tag.get("alt", "").strip()
-        img_tag = a_tag.find("img", title=True)
+            text += " " + img_tag.get("alt", "").strip()  # type: ignore
+        img_tag = a_tag.find("img", attrs={"title": True})  # type: ignore
         if img_tag:
-            text += img_tag.get("title", "").strip()
+            text += " " + img_tag.get("title", "").strip()  # type: ignore
+        text = " ".join(text.split())  # 余分な空白を削除
 
         links.append((full_url.strip(), text))
 
@@ -42,3 +43,21 @@ def normalize_url(url):
     """URLを正規化（クエリパラメータの削除など）"""
     parsed = urlparse(url)
     return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+
+
+def extract_title(html_content):
+    """HTMLからタイトルを抽出"""
+
+    try:
+
+        soup = BeautifulSoup(html_content, "html.parser")
+
+        if soup.title and soup.title.string:
+
+            return soup.title.string.strip()
+
+    except Exception:
+
+        pass
+
+    return None

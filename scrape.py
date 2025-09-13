@@ -137,18 +137,25 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
         path = urlparse(url).path or "/"
 
         # Disallowルールをチェック
-        if rules["disallow"]:
-            for pattern in rules["disallow"].split("\n"):
-                if pattern and path.startswith(pattern):
+        if (
+            rules
+            and isinstance(rules, dict)
+            and "disallow" in rules
+            and rules["disallow"]
+        ):
+            for pattern in rules["disallow"].split("\n"):  # type: ignore
+                if pattern and path.startswith(str(pattern)):
                     return False, 0
 
         # Allowルールをチェック
-        if rules["allow"]:
-            for pattern in rules["allow"].split("\n"):
-                if pattern and path.startswith(pattern):
-                    return True, rules["crawl_delay"] or 0
+        if rules and isinstance(rules, dict) and "allow" in rules and rules["allow"]:
+            for pattern in rules["allow"].split("\n"):  # type: ignore
+                if pattern and path.startswith(str(pattern)):
+                    return True, (
+                        rules["crawl_delay"] if rules["crawl_delay"] is not None else 0
+                    )
 
-        return True, rules["crawl_delay"] or 0
+        return True, rules["crawl_delay"] if rules["crawl_delay"] is not None else 0  # type: ignore
 
     finally:
         cursor.close()

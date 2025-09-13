@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import datetime
 import mysql.connector
 from config import DB_CONFIG
+from urllib.error import URLError
 
 
 def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
@@ -37,6 +38,10 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
 
         cursor.execute(sql, (domain, user_agent, disallow, allow, delay, now, expires))
         conn.commit()
+
+    except URLError as e:
+        print(f"[WARN] robots.txt取得失敗: {e}")
+        return
 
     finally:
         cursor.close()
@@ -78,22 +83,25 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
         if not rules:
             return True, 0  # ルールが取得できない場合はデフォルトで許可
 
+        # rulesを明示的に辞書型にキャスト
+        rules_dict = dict(rules.items())  # type: ignore
+
         # パスに対するアクセス可否を判定
         path = urlparse(url).path or "/"
 
         # Disallowルールをチェック
-        if rules["disallow"]:
-            for pattern in rules["disallow"].split("\n"):
-                if pattern and path.startswith(pattern):
+        if rules_dict["disallow"]:
+            for pattern in rules_dict["disallow"].split("\n"):  # type: ignore
+                if pattern and path.startswith(str(pattern)):
                     return False, 0
 
         # Allowルールをチェック
-        if rules["allow"]:
-            for pattern in rules["allow"].split("\n"):
-                if pattern and path.startswith(pattern):
-                    return True, rules["crawl_delay"] or 0
+        if rules_dict["allow"]:
+            for pattern in rules_dict["allow"].split("\n"):  # type: ignore
+                if pattern and path.startswith(str(pattern)):
+                    return True, rules_dict["crawl_delay"] or 0
 
-        return True, rules["crawl_delay"] or 0
+        return True, rules_dict["crawl_delay"] or 0
 
     finally:
         cursor.close()

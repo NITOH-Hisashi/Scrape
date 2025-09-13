@@ -2,6 +2,7 @@ from datetime import datetime
 import mysql.connector
 from config import DB_CONFIG
 import json
+from typing import Optional, Dict, Any, Tuple, Union
 
 
 class ScrapedPage:
@@ -15,6 +16,7 @@ class ScrapedPage:
         hash_value=None,
         error_message=None,
         method="GET",
+        processed=False,
         payload=None,
     ):
         self.url = url
@@ -112,7 +114,7 @@ def save_page_to_db(page):
         conn.close()
 
 
-def get_unprocessed_page():
+def get_unprocessed_page() -> Optional[Dict[str, Any]]:
     """未処理のページを1件取得（POST対応）"""
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
@@ -126,16 +128,26 @@ def get_unprocessed_page():
             LIMIT 1
             """
         )
-        row = cursor.fetchone()
+        row = cursor.fetchone()  # type: ignore
         if row:
-            payload = json.loads(row.get("payload") or "{}") if row["payload"] else {}
+            row: Optional[Dict[str, Any]] = row
+            # payloadがJSON文字列なら辞書に変換
+            # type: Optional[Dict[str, Any]]
+            payload = (
+                json.loads(row.get("payload") or "{}") if row.get("payload") else {}
+            )
             return {
                 "url": row["url"],
                 "referrer": row["referrer"],
                 "method": row.get("method", "GET").upper(),
                 "payload": payload,
             }
-        return None
+        return {
+            "url": None,
+            "referrer": None,
+            "method": "GET",
+            "payload": {},
+        }
     finally:
         cursor.close()
         conn.close()
@@ -165,9 +177,15 @@ def get_page_counts():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = FALSE")
-        unprocessed_count = cursor.fetchone()[0]
+        unprocessed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = (
+            cursor.fetchone()
+        )
+        unprocessed_count = unprocessed_row[0] if unprocessed_row else 0  # type: ignore
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = TRUE")
-        processed_count = cursor.fetchone()[0]
+        processed_row: Optional[Union[Tuple[Any, ...], Dict[str, Any]]] = (
+            cursor.fetchone()
+        )
+        processed_count = processed_row[0] if processed_row else 0  # type: ignore
         return unprocessed_count, processed_count
     finally:
         cursor.close()
@@ -193,6 +211,256 @@ def exists_in_db(url: str) -> bool:
     try:
         cursor.execute("SELECT 1 FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
         return cursor.fetchone() is not None
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_page_by_url(url: str):
+    """指定URLのページ情報を取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
+        row = cursor.fetchone()  # type: ignore
+        if row:
+            row: Optional[Dict[str, Any]] = row
+            if row.get("payload"):
+                row["payload"] = json.loads(row["payload"])
+            return row
+        return None
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def delete_page_by_url(url: str):
+    """指定URLのページ情報を削除"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM scraped_pages WHERE url = %s", (url,))
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def update_page_content(url: str, content: str, hash_value):
+    """指定URLのページ内容とハッシュを更新"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        hash_str = (
+            (hash_value.hex() if hasattr(hash_value, "hex") else str(hash_value))
+            if hash_value is not None
+            else None
+        )
+        cursor.execute(
+            "UPDATE scraped_pages SET content = %s, `hash` = %s WHERE url = %s",
+            (content, hash_str, url),
+        )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def clear_all_pages():
+    """scraped_pages テーブルの全レコードを削除"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM scraped_pages")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def count_pages():
+    """scraped_pages テーブルの全レコード数を返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM scraped_pages")
+        row = cursor.fetchone()  # type: ignore
+        if row:
+            row: Optional[Dict[str, Any]] = row
+            return row["0"]
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_all_urls():
+    """scraped_pages テーブルの全URLをリストで返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT url FROM scraped_pages")
+        rows = cursor.fetchall()  # type: ignore
+        if rows:
+            rows: list = rows
+            for row in rows:
+                row: Optional[Dict[str, Any]] = row
+                if row:
+                    yield row["url"]
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_processed_urls():
+    """処理済みのURLをリストで返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT url FROM scraped_pages WHERE processed = TRUE")
+        rows = cursor.fetchall()  # type: ignore
+        if rows:
+            rows: list = rows
+            for row in rows:
+                row: Optional[Dict[str, Any]] = row
+                if row:
+                    yield row["url"]
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_unprocessed_urls():
+    """未処理のURLをリストで返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT url FROM scraped_pages WHERE processed = FALSE")
+        rows = cursor.fetchall()  # type: ignore
+        if rows:
+            rows: list = rows
+            for row in rows:
+                row: Optional[Dict[str, Any]] = row
+                if row:
+                    yield row["url"]
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def mark_all_as_processed():
+    """全ページを処理済みとしてマーク"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE scraped_pages SET processed = TRUE")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def mark_all_as_unprocessed():
+    """全ページを未処理としてマーク"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE scraped_pages SET processed = FALSE")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def update_error_message(url: str, error_message: str):
+    """指定URLのエラーメッセージを更新"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE scraped_pages SET error_message = %s WHERE url = %s",
+            (error_message, url),
+        )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_error_messages():
+    """全ページのエラーメッセージを取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            "SELECT url,"
+            "error_message"
+            "FROM scraped_pages"
+            "WHERE error_message IS NOT NULL"
+        )
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def clear_error_messages():
+    """全ページのエラーメッセージをクリア"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE scraped_pages SET error_message = NULL")
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_page_statistics():
+    """ページの統計情報を取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*) AS total_pages,
+                SUM(
+                CASE WHEN processed = TRUE
+                THEN 1 ELSE 0 END
+                ) AS processed_pages,
+                SUM(
+                CASE WHEN processed = FALSE
+                THEN 1 ELSE 0 END
+                ) AS unprocessed_pages,
+                AVG(LENGTH(content)) AS avg_content_size
+            FROM scraped_pages
+        """
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_page_by_id(page_id: int):
+    """指定IDのページ情報を取得"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM scraped_pages WHERE id = %s", (page_id,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_page_count():
+    """scraped_pages テーブルの全レコード数を返す"""
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM scraped_pages")
+        return cursor.fetchone()["COUNT(*)"]  # type: ignore
     finally:
         cursor.close()
         conn.close()

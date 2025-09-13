@@ -1,3 +1,4 @@
+from typing import Any, Dict, Optional
 import unittest
 from unittest.mock import patch, MagicMock
 from models import (
@@ -57,7 +58,8 @@ class TestDBFunctions(unittest.TestCase):
             "payload": '{"key": "value"}',
         }
 
-        result = get_unprocessed_page()
+        result: Optional[Dict[str, Any]] = get_unprocessed_page()
+        self.assertIsNotNone(result)
         self.assertEqual(result["url"], "https://example.com")
         self.assertEqual(result["method"], "POST")
         self.assertEqual(result["payload"], {"key": "value"})
