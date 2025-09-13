@@ -116,7 +116,7 @@ def await_or_call(value):
     return value
 
 
-def fetch_post_content(url, data, referrer=None, headers=None):
+def fetch_post_content(url: str, data: dict, referrer: str | None = None, headers=None):
     """POSTリクエストでHTMLを取得し ScrapedPage を生成"""
     try:
         headers = headers or {}

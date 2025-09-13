@@ -72,16 +72,16 @@ def test_scrape_page_success_http(monkeypatch):
             return None
 
     monkeypatch.setattr(scraper.requests, "get", lambda *a, **k: MockResp())
-    result = scrape_page("http://example.com")
-    assert result.url == "http://example.com"
-    assert result.title == 'Test Page'
+    result = scrape_page("https://x.com")
+    assert result.url == "https://x.com"
+    assert result.error_message is None
     assert result.content is not None and "OK" in result.content
     assert (
         result.content
-        == "<html><head><title>Test Page</title></head><body>Content</body></html>"
+        == "<html><head><title>Test Page</title></head><body>OK</body></html>"
     )
     assert result.status_code == 200
-    assert result.error_message is None
+    assert result.title == "Test Page"
 
 
 def test_scrape_failure_http(monkeypatch):
@@ -91,11 +91,11 @@ def test_scrape_failure_http(monkeypatch):
         raise Exception("Failed to fetch")
 
     monkeypatch.setattr(scraper.requests, "get", raise_exc)
-    result = scrape_page("http://example.com")
-    assert result.url == "http://example.com"
-    assert result.error_message == "Failed to fetch"
+    result = scrape_page("https://x.com")
+    assert result.url == "https://x.com"
     assert result.status_code is None
     assert result.content == ""
+    assert result.error_message == "Failed to fetch"
 
 
 @patch("scraper.requests.get")

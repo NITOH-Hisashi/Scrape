@@ -66,6 +66,7 @@ def test_scrape_page_playwright(monkeypatch):
     monkeypatch.setattr(scraper, "sync_playwright", lambda: DummyPlaywright())
     monkeypatch.setattr(scraper, "get_hash", lambda t: "hash")
     page = scraper.scrape_page("http://example.com/playwright")
+    assert page.content == "<html><title>T</title></html>"
     assert page.title == "T"
 
 
@@ -74,14 +75,15 @@ def test_scrape_page_exception(monkeypatch):
     monkeypatch.setattr(config, "USE_PLAYWRIGHT_PATTERNS", [])
 
     # requests.get を例外発生にモック
-    def raise_exc(*a, **k):
-        raise Exception("fail")
+    monkeypatch.setattr(
+        scraper.requests,
+        "get",
+        lambda *a, **k: (_ for _ in ()).throw(Exception("getFail"))
+    )
 
-    monkeypatch.setattr("scraper.requests.get", raise_exc)
-
-    page = scraper.scrape_page("http://example.com")
+    page = scraper.scrape_page("https://x.com")
     assert page.error_message is not None
-    assert "fail" in page.error_message
+    assert "getFail" in page.error_message
 
 
 def test_fetch_post_content_exception(monkeypatch):
@@ -91,7 +93,7 @@ def test_fetch_post_content_exception(monkeypatch):
         lambda *a,
         **k: (_ for _ in ()).throw(Exception("postFail")),
     )
-    page = scraper.fetch_post_content("http://x", data={})
+    page = scraper.fetch_post_content("https://x.com", data={})
     assert page.error_message is not None and "postFail" in page.error_message
 
 
@@ -110,7 +112,7 @@ def test_extract_and_save_links_existing(monkeypatch):
 
 
 def test_process_single_page_blocked(monkeypatch):
-    row = {"url": "http://x"}
+    row = {"url": "https://x.com"}
     monkeypatch.setattr(scraper, "should_scrape", lambda u, ua: False)
     scraper.process_single_page(row, "UA")  # return して何もせず
 
@@ -126,7 +128,7 @@ def test_process_single_page_empty_content(monkeypatch):
 
 
 def test_process_single_page_error(monkeypatch):
-    row = {"url": "http://x"}
+    row = {"url": "https://x.com"}
     page = types.SimpleNamespace(content="abc", error_message="err")
     monkeypatch.setattr(scraper, "should_scrape", lambda u, ua: True)
     monkeypatch.setattr(scraper, "scrape_page", lambda u, r=None: page)
