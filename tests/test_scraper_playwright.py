@@ -86,12 +86,23 @@ def mock_playwright(monkeypatch):
 
 
 def test_scrape_page_with_playwright(monkeypatch):
-    monkeypatch.setattr(config, "USE_PLAYWRIGHT_PATTERNS", ["mocksite.com"])
+    monkeypatch.setattr(config, "USE_PLAYWRIGHT_PATTERNS", ["amus.biz"])
     monkeypatch.setattr("scraper.sync_playwright", lambda: DummyPlaywright())
 
-    page = scrape_page("https://mocksite.com/page")
+    page = scrape_page("https://amus.biz")
     assert isinstance(page, ScrapedPage)
     # 実装の仕様に合わせて期待値を決める
     # 1) title() を優先
-    assert page.title == "mocksite.com"
+    # 2) title() が空なら URL のホスト名
+    # 3) それも空なら None
+    # 実在のページを使う場合は、タイトルが変わる可能性があるので注意
+    assert page.title == "AMUSEMENT PROJECT Groups AMU'S"
     assert page.error_message is None
+    assert (
+        page.content is not None
+        and "<title>AMUSEMENT PROJECT Groups AMU'S</title>" in page.content
+    )
+    assert page.url == "https://amus.biz"
+    assert page.status_code == 200
+    assert page.hash is not None
+    assert page.hash != ""  # 空文字列ではないことを確認
