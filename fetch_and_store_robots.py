@@ -114,8 +114,18 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
     rp.set_url(robots_url)
     try:
         rp.read()
-        disallow = "\n".join(rp.disallow_all if rp.disallow_all else [])
-        allow = "\n".join(rp.allow_all if rp.allow_all else [])
+        # Manually parse the robots.txt content to extract disallow and allow rules
+        robots_txt_content = requests.get(robots_url, timeout=10).text
+        disallow_rules = []
+        allow_rules = []
+        for line in robots_txt_content.splitlines():
+            line = line.strip()
+            if line.startswith("Disallow:"):
+                disallow_rules.append(line[len("Disallow:") :].strip())
+            elif line.startswith("Allow:"):
+                allow_rules.append(line[len("Allow:") :].strip())
+        disallow = "\n".join(disallow_rules)
+        allow = "\n".join(allow_rules)
         delay = rp.crawl_delay(user_agent)
 
         now = datetime.now(UTC)
