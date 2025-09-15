@@ -161,7 +161,7 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
                         rules["crawl_delay"] if rules["crawl_delay"] is not None else 0
                     )
 
-        return True, rules["crawl_delay"] if rules["crawl_delay"] is not None else 0  # type: ignore
+        return True, 0  # 明示されていない場合は許可
 
     finally:
         cursor.close()
