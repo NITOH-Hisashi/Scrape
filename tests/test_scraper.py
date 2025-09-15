@@ -103,17 +103,21 @@ def test_scrape_failure_http(monkeypatch):
 def test_scrape_success_db(mock_connect, mock_get):
     mock_get.return_value.status_code = 200
     mock_get.return_value.text = (
-        "<html><body><a href='https://example.com'>Link</a></body></html>"
+        "<html><body><a href='https://amus.info/link'>Link</a></body></html>"
     )
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_connect.return_value = mock_conn
     mock_conn.cursor.return_value = mock_cursor
     mock_cursor.fetchone.return_value = None
-    result = scrape_page("https://example.com")
-    assert result.status_code is None  # DB保存はmockで実際には行われない
+    result = scrape_page("https://amus.info")
+    assert result.status_code == 200  # DB保存はmockで実際には行われない
     assert result.error_message is None
     assert result.content is not None
+    assert "https://amus.info/link" in result.content
+    assert result.title == "amus.info"  # タイトルタグがない場合はURLのホスト名になる
+    assert result.hash is not None
+    assert result.hash != ""  # 空文字列ではないことを確認
 
 
 @patch("scraper.check_robots_rules")
