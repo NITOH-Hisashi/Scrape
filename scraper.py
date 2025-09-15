@@ -58,8 +58,16 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
                 title = (await_or_call(page_obj.title())) or urlparse(url).netloc
                 browser.close()
                 status_code = 200
+                hash_value = get_hash(content)
+
                 return ScrapedPage(
-                    url=url, title=title, content=content, error_message=None
+                    url=url,
+                    title=title,
+                    content=content,
+                    error_message=None,
+                    referrer=referrer,
+                    status_code=status_code,
+                    hash_value=hash_value,
                 )
         else:
             headers = {"Referer": referrer} if referrer else {}
@@ -156,7 +164,15 @@ def fetch_post_content(url: str, data: dict, referrer: str | None = None, header
             hash_value=hash_value,
         )
     except Exception as e:
-        return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
+        return ScrapedPage(
+            url=url,
+            referrer=referrer,
+            error_message=str(e),
+            title=None,
+            content="",
+            status_code=None,
+            hash_value=None,
+        )
 
 
 def extract_and_save_links(page):
