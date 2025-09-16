@@ -121,9 +121,9 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
         for line in robots_txt_content.splitlines():
             line = line.strip()
             if line.startswith("Disallow:"):
-                disallow_rules.append(line[len("Disallow:"):].strip())
+                disallow_rules.append(line[len("Disallow:") :].strip())
             elif line.startswith("Allow:"):
-                allow_rules.append(line[len("Allow:"):].strip())
+                allow_rules.append(line[len("Allow:") :].strip())
         disallow = "\n".join(disallow_rules)
         allow = "\n".join(allow_rules)
         delay = rp.crawl_delay(user_agent)
