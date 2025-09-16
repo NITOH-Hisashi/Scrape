@@ -1,8 +1,30 @@
 from datetime import datetime
 import mysql.connector
-from environment.config import DB_CONFIG
 import json
 from typing import Optional, Dict, Any, Tuple, Union
+import os
+import sqlite3
+
+
+DB_BACKEND = os.getenv("DB_BACKEND", "mysql")
+
+if DB_BACKEND == "sqlite":
+    DB_CONFIG = {"database": os.getenv("SQLITE_DB", ":memory:")}
+else:
+    DB_CONFIG = {
+        "user": os.getenv("DB_USER", "root"),
+        "password": os.getenv("DB_PASSWORD", "root"),
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": int(os.getenv("DB_PORT", "3306")),
+        "database": os.getenv("DB_NAME", "scraping_db"),
+    }
+
+
+def get_connection():
+    if DB_BACKEND == "sqlite":
+        return sqlite3.connect(DB_CONFIG["database"])
+    else:
+        return mysql.connector.connect(**DB_CONFIG)
 
 
 class ScrapedPage:
