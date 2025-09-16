@@ -46,6 +46,7 @@ def extract_links(
 
         links.append((full_url.strip(), text))
 
+    print(f"抽出リンク数: {len(links)}")
     return links
 
 
