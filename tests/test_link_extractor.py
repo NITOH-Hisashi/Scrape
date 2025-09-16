@@ -12,7 +12,7 @@ def test_extract_links_basic():
     </html>
     """
     soup = BeautifulSoup(html, "html.parser")
-    links = extract_links(soup, base_url="http://example.com")
+    links = extract_links(soup, source_url="http://example.com")
     assert isinstance(links, list)
     assert ("http://example.com/page1", "Page 1") in links
     assert ("http://example.com/page2", "Page 2") in links
@@ -29,7 +29,7 @@ def test_extract_links_img_alt():
     </html>
     """
     soup = BeautifulSoup(html, "html.parser")
-    links = extract_links(soup, base_url="http://example.com")
+    links = extract_links(soup, source_url="http://example.com")
     # ↓ ここを return → assert に変更
     assert isinstance(links, list)
     assert ("http://example.com/image", "Alt Text") in links
@@ -44,7 +44,7 @@ def test_extract_links_no_href():
     </html>
     """
     soup = BeautifulSoup(html, "html.parser")
-    links = extract_links(soup, base_url="http://example.com")
+    links = extract_links(soup, source_url="http://example.com")
     assert links == []
 
 
@@ -58,7 +58,7 @@ def test_extract_links_relative_and_absolute():
     </html>
     """
     soup = BeautifulSoup(html, "html.parser")
-    links = extract_links(soup, base_url="http://example.com")
+    links = extract_links(soup, source_url="http://example.com")
 
     # 相対パスは base_url と結合されて含まれる
     assert ("http://example.com/page1.html", "Relative") in links
