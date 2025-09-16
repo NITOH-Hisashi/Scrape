@@ -118,5 +118,6 @@ def main():
     for url, text in links:
         print(f"{url} | {text}")
 
+
 if __name__ == "__main__":
     main()
