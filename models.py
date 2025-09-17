@@ -81,18 +81,20 @@ class ScrapedPage:
 
 
 def save_page_to_db(page: ScrapedPage):
-    """スクレイピング結果をデータベースに保存（POST対応）"""
+    """スクレイピング結果をデータベースに保存（MySQL/SQLite両対応）"""
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # 値の型を安全に変換
         page_dict = page.to_dict()
+
         byte_size = (
             len(page_dict["content"].encode("utf-8", errors="ignore"))
             if page_dict.get("content")
             else 0
         )
         print(f"{page_dict['url']} page_dict content size: {byte_size} bytes")
+
+        # hash が bytes の場合は文字列化
         if page_dict.get("hash") is not None and not isinstance(page_dict["hash"], str):
             # bytesやその他の型を文字列化（例: SHA256のbytes → hex文字列）
             page_dict["hash"] = (
@@ -100,53 +102,92 @@ def save_page_to_db(page: ScrapedPage):
                 if hasattr(page_dict["hash"], "hex")
                 else str(page_dict["hash"])
             )
-        cursor.execute(
-            """
-            INSERT INTO scraped_pages (
-                url,
-                url_hash,
-                fetched_at,
-                title,
-                content,
-                referrer,
-                status_code,
-                hash,
-                error_message,
-                processed,
-                method,
-                payload
+
+        if DB_BACKEND == "mysql":
+            # MySQL 用: ON DUPLICATE KEY UPDATE
+            cursor.execute(
+                """
+                INSERT INTO scraped_pages (
+                    url,
+                    url_hash,
+                    fetched_at,
+                    title,
+                    content,
+                    referrer,
+                    status_code,
+                    hash,
+                    error_message,
+                    processed,
+                    method,
+                    payload
+                )
+                VALUES (
+                    %(url)s,
+                    %(url_hash)s,
+                    %(fetched_at)s,
+                    %(title)s,
+                    %(content)s,
+                    %(referrer)s,
+                    %(status_code)s,
+                    %(hash)s,
+                    %(error_message)s,
+                    %(processed)s,
+                    %(method)s,
+                    %(payload)s
+                )
+                ON DUPLICATE KEY UPDATE
+                    referrer = COALESCE(VALUES(referrer), referrer),
+                    fetched_at = CURRENT_TIMESTAMP,
+                    title = CASE
+                        WHEN (title IS NULL OR title = '') THEN VALUES(title)
+                        ELSE title
+                    END,
+                    content = COALESCE(VALUES(content), content),
+                    status_code = COALESCE(VALUES(status_code), status_code),
+                    hash = COALESCE(VALUES(hash), hash),
+                    error_message = VALUES(error_message),
+                    processed = VALUES(processed),
+                    method = VALUES(method),
+                    payload = VALUES(payload)
+                """,
+                page_dict,
             )
-            VALUES (
-                %(url)s,
-                %(url_hash)s,
-                %(fetched_at)s,
-                %(title)s,
-                %(content)s,
-                %(referrer)s,
-                %(status_code)s,
-                %(hash)s,
-                %(error_message)s,
-                %(processed)s,
-                %(method)s,
-                %(payload)s
+        else:
+            # SQLite 用: INSERT OR REPLACE
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO scraped_pages (
+                    url,
+                    url_hash,
+                    fetched_at,
+                    error_message,
+                    processed,
+                    method,
+                    payload,
+                    title,
+                    content,
+                    referrer,
+                    status_code,
+                    hash
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    page_dict["url"],
+                    page_dict["url_hash"],
+                    page_dict["fetched_at"],
+                    page_dict["title"],
+                    page_dict["content"],
+                    page_dict["referrer"],
+                    page_dict["status_code"],
+                    page_dict["hash"],
+                    page_dict["error_message"],
+                    page_dict["processed"],
+                    page_dict["method"],
+                    page_dict["payload"],
+                ),
             )
-        ON DUPLICATE KEY UPDATE
-            referrer = COALESCE(VALUES(referrer), referrer),
-            fetched_at = CURRENT_TIMESTAMP,
-            title = CASE
-                WHEN (title IS NULL OR title = '') THEN VALUES(title)
-                ELSE title
-            END,
-            content = COALESCE(VALUES(content), content),
-            status_code = COALESCE(VALUES(status_code), status_code),
-            hash = COALESCE(VALUES(hash), hash),
-            error_message = VALUES(error_message),
-            processed = VALUES(processed),
-            method = VALUES(method),
-            payload = VALUES(payload)
-        """,
-            page_dict,
-        )
+
         conn.commit()
     finally:
         cursor.close()
