@@ -5,6 +5,11 @@ import mysql.connector
 import models
 
 
+@pytest.fixture(autouse=True)
+def force_mysql(monkeypatch):
+    monkeypatch.setenv("DB_BACKEND", "mysql")
+
+
 @pytest.fixture(scope="function", autouse=True)
 def db_connection(monkeypatch):
     """
