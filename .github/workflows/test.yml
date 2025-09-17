@@ -40,6 +40,9 @@ jobs:
       - name: Set up config for CI
         run: cp environment/config.py.template environment/config.py
 
+      - name: Initialize database schema
+        run: python init_db.py
+
       - name: Install Playwright browsers
         run: playwright install --with-deps chromium
 
