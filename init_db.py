@@ -8,12 +8,13 @@ def init_db():
         """
     CREATE TABLE IF NOT EXISTS scraped_pages (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        url VARCHAR(2083) UNIQUE,
+        url TEXT NOT NULL,
+        url_hash CHAR(64) NOT NULL UNIQUE,
         title TEXT,
         content MEDIUMTEXT,
-        referrer VARCHAR(2083),
+        referrer TEXT,
         status_code INT,
-        hash VARCHAR(64),
+        hash CHAR(64),
         error_message TEXT,
         processed BOOLEAN,
         method VARCHAR(10),
