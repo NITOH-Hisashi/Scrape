@@ -551,12 +551,12 @@ def get_connection():
         conn = sqlite3.connect(DB_CONFIG["database"])
         conn.row_factory = sqlite3.Row
         return conn
-    else:
+    else:  # mysql
         return mysql.connector.connect(**DB_CONFIG)
 
 
 def get_cursor(conn, dictionary=False):
-    if DB_BACKEND == "mysql":
-        return conn.cursor(dictionary=dictionary)
-    else:  # sqlite
+    if DB_BACKEND == "sqlite":
         return conn.cursor()
+    else:  # mysql
+        return conn.cursor(dictionary=dictionary)
