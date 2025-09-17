@@ -547,7 +547,7 @@ def get_page_count():
 
 
 def get_connection():
-    if DB_BACKEND == "sqlite":
+    if DB_BACKEND == "#sqlite":
         conn = sqlite3.connect(DB_CONFIG["database"])
         conn.row_factory = sqlite3.Row
         return conn
@@ -556,7 +556,7 @@ def get_connection():
 
 
 def get_cursor(conn, dictionary=False):
-    if DB_BACKEND == "sqlite":
+    if DB_BACKEND == "#sqlite":
         return conn.cursor()
     else:  # mysql
         return conn.cursor(dictionary=dictionary)
