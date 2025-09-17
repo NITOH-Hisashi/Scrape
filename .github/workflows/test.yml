@@ -13,6 +13,7 @@ jobs:
       mysql:
         image: mysql:8
         env:
+          DB_BACKEND: mysql
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: scraping_db
         ports:
@@ -51,8 +52,6 @@ jobs:
           export PYTHONPATH="${{ github.workspace }}"
           pytest --cov=scraper --cov=models --cov=link_extractor --cov=robots_handler \
                  --cov-report=xml tests/
-        env:
-          DB_BACKEND: mysql
 
       - name: 🧼 Run flake8 lint check
         run: |
