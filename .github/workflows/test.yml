@@ -46,10 +46,10 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install --with-deps chromium
 
-      - name: 🧪 Run tests with pytest
+      - name: 🧪 Run tests with pytest (MySQL)
         run: |
           export PYTHONPATH="${{ github.workspace }}"
-          pytest --cov=scraper --cov=models --cov=link_extractor --cov=robots_handler \
+          DB_BACKEND=mysql pytest --cov=scraper --cov=models --cov=link_extractor --cov=robots_handler \
                  --cov-report=xml tests/
 
       - name: 🧼 Run flake8 lint check
