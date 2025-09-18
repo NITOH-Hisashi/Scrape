@@ -14,6 +14,7 @@ jobs:
         image: mysql:8
         env:
           DB_BACKEND: mysql
+          TEST_DB: mysql
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: scraping_db
         ports:
