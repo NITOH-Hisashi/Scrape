@@ -23,11 +23,12 @@ else:
 
 
 class ScrapedPage:
+
     def __init__(
         self,
         url,
-        title,
-        content,
+        title=None,
+        content=None,
         referrer=None,
         status_code=None,
         hash_value=None,
