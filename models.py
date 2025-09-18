@@ -548,6 +548,7 @@ def get_page_count():
 
 def get_connection():
     if DB_BACKEND == "#sqlite":
+        print("Using SQLite backend")
         conn = sqlite3.connect(DB_CONFIG["database"])
         conn.row_factory = sqlite3.Row
         return conn
