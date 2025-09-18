@@ -413,7 +413,7 @@ def get_processed_urls():
 def get_unprocessed_urls():
     """未処理のURLをリストで返す"""
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute("SELECT url FROM scraped_pages WHERE processed = FALSE")
         rows = cursor.fetchall()  # type: ignore
