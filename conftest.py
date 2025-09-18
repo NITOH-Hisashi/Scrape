@@ -16,7 +16,7 @@ def db_connection(monkeypatch):
     DB接続をSQLiteインメモリ or MySQLに切り替えるfixture
     TEST_DB=sqlite ならSQLite、それ以外はMySQL
     """
-    db_backend = os.getenv("TEST_DB", "sqlite")
+    db_backend = os.getenv("TEST_DB", "mysql")
 
     if db_backend == "sqlite":
         # SQLiteインメモリDBを利用
