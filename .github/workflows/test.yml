@@ -49,6 +49,9 @@ jobs:
         run: playwright install --with-deps chromium
 
       - name: 🧪 Run tests with pytest (MySQL)
+        env:
+          DB_BACKEND: mysql
+          TEST_DB: mysql
         run: |
           export PYTHONPATH="${{ github.workspace }}"
           pytest --cov=scraper --cov=models --cov=link_extractor --cov=robots_handler \
