@@ -1,13 +1,11 @@
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse
-
 import requests
 from bs4 import BeautifulSoup
-import mysql.connector
+from models import get_connection, get_cursor
 from datetime import datetime, timedelta, UTC
 from urllib.parse import urljoin
 import hashlib
-from environment.config import DB_CONFIG
 
 
 def extract_links(soup, base_url):
@@ -74,8 +72,8 @@ def get_hash(text):
 
 
 def save_to_mysql(data):
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cursor = get_cursor(conn)
     sql = """
         INSERT INTO scraped_pages (
             url,
@@ -132,8 +130,8 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
         expires = now + timedelta(hours=24)
 
         # DB保存（UPSERT）
-        conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor()
+        conn = get_connection()
+        cursor = get_cursor(conn)
         cursor.execute(
             """
             INSERT INTO robots_rules (

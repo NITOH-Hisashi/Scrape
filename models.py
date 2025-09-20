@@ -1,25 +1,14 @@
+from environment.config import settings
 from datetime import datetime
 import mysql.connector
 import json
 from typing import Optional, Dict, Any, Tuple, Union
-import os
 import sqlite3
 import hashlib
 
 
 # 環境変数からDB設定を取得
-DB_BACKEND = os.getenv("DB_BACKEND", "mysql")
-
-if DB_BACKEND == "sqlite":
-    DB_CONFIG = {"database": os.getenv("SQLITE_DB", ":memory:")}
-else:
-    DB_CONFIG = {
-        "user": os.getenv("DB_USER", "root"),
-        "password": os.getenv("DB_PASSWORD", "root"),
-        "host": os.getenv("DB_HOST", "localhost"),
-        "port": int(os.getenv("DB_PORT", "3306")),
-        "database": os.getenv("DB_NAME", "scraping_db"),
-    }
+DB_URL = str(settings.database_url)
 
 
 class ScrapedPage:
@@ -104,7 +93,7 @@ def save_page_to_db(page: ScrapedPage):
                 else str(page_dict["hash"])
             )
 
-        if DB_BACKEND == "mysql":
+        if DB_URL.startswith("mysql"):
             # MySQL 用: ON DUPLICATE KEY UPDATE
             cursor.execute(
                 """
@@ -548,17 +537,29 @@ def get_page_count():
 
 
 def get_connection():
-    if DB_BACKEND == "#sqlite":
+    if DB_URL.startswith("sqlite"):
         print("Using SQLite backend")
-        conn = sqlite3.connect(DB_CONFIG["database"])
+        conn = sqlite3.connect(DB_URL.replace("sqlite:///", ""))
         conn.row_factory = sqlite3.Row
         return conn
-    else:  # mysql
-        return mysql.connector.connect(**DB_CONFIG)
+    elif DB_URL.startswith("mysql"):
+        import urllib.parse as urlparse
+
+        url = urlparse.urlparse(DB_URL.replace("mysql://", "mysql+pymysql://"))
+        return mysql.connector.connect(
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port or 3306,
+            database=url.path.lstrip("/"),
+            charset="utf8mb4",
+        )
+    else:
+        raise ValueError(f"Unsupported DB backend: {DB_URL}")
 
 
 def get_cursor(conn, dictionary=False):
-    if DB_BACKEND == "#sqlite":
+    if DB_URL.startswith("sqlite"):
         return conn.cursor()
     else:  # mysql
         return conn.cursor(dictionary=dictionary)

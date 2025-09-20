@@ -3,6 +3,7 @@ import pytest
 import sqlite3
 import mysql.connector
 import models
+from environment.config import settings
 
 
 @pytest.fixture(autouse=True)
@@ -16,7 +17,7 @@ def db_connection(monkeypatch):
     DB接続をSQLiteインメモリ or MySQLに切り替えるfixture
     TEST_DB=sqlite ならSQLite、それ以外はMySQL
     """
-    db_backend = os.getenv("TEST_DB", "sqlite")
+    db_backend = os.getenv("TEST_DB", "mysql")
 
     if db_backend == "sqlite":
         # SQLiteインメモリDBを利用
@@ -49,7 +50,19 @@ def db_connection(monkeypatch):
     else:
         # MySQLを利用（CIでmysqlサービスを立ち上げる想定）
         def _mysql_conn():
-            return mysql.connector.connect(**models.DB_CONFIG)
+            import urllib.parse as urlparse
+
+            url = urlparse.urlparse(
+                str(settings.database_url).replace("mysql://", "mysql+pymysql://")
+            )
+            return mysql.connector.connect(
+                user=url.username,
+                password=url.password,
+                host=url.hostname,
+                port=url.port or 3306,
+                database=url.path.lstrip("/"),
+                charset="utf8mb4",
+            )
 
         monkeypatch.setattr(models, "get_connection", _mysql_conn)
 

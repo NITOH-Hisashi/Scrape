@@ -1,9 +1,8 @@
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse
 import datetime
-import mysql.connector
-from environment.config import DB_CONFIG
 from urllib.error import URLError
+from models import get_connection, get_cursor
 
 
 def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
@@ -12,7 +11,7 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
     rp = RobotFileParser()
     rp.set_url(robots_url)
 
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
 
     try:
@@ -50,8 +49,8 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
 
 def check_robots_rules(url, user_agent="MyScraperBot"):
     """robots.txtのルールをチェック"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
 
     try:
         domain = urlparse(url).netloc

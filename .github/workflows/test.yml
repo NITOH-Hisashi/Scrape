@@ -11,10 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:8
+        image: mysql:8.0
         env:
-          DB_BACKEND: mysql
-          TEST_DB: mysql
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: scraping_db
         ports:
@@ -26,12 +24,12 @@ jobs:
           --health-retries=3
     steps:
       - name: 📥 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: 📦 Install dependencies
         run: |
@@ -39,8 +37,11 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov flake8 black
 
-      - name: Set up config for CI
-        run: cp environment/config.py.template environment/config.py
+      - name: Load .env.test
+        uses: xom9ikk/dotenv@v2.3.0
+        with:
+          path: .
+          mode: test   # => .env.test を読み込む
 
       - name: Initialize database schema
         run: python init_db.py

@@ -205,4 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-environment/
+
+# 環境変数ファイル（秘密情報）
+.env
+.env.*
+!.env.template   # サンプルは Git 管理下に残す
+!.env.test     # Git 管理下CI用のテスト環境変数ファイルは残す
+
+# ローカル専用メモ
+local/

@@ -1,11 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-import mysql.connector
 import hashlib
 from urllib.parse import urlparse
 from fetch_and_store_robots import fetch_and_store_robots
-from models import ScrapedPage
-from environment.config import DB_CONFIG
+from models import ScrapedPage, get_connection, get_cursor
 
 
 # ハッシュ値を生成する関数
@@ -52,8 +50,8 @@ def save_to_mysql(data):
     if not data:
         return
 
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cursor = get_cursor(conn)
 
     try:
         sql = """
@@ -106,8 +104,8 @@ def is_under_base(url, base_url):
 # robots.txtのルールをチェックする関数
 def check_robots_rules(url, user_agent="MyScraperBot"):
     """robots.txtのルールをチェック"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
 
     try:
         domain = urlparse(url).netloc
