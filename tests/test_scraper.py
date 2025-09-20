@@ -8,7 +8,7 @@ from scraper import (
     process_single_page,
     fetch_post_content,
 )
-from models import ScrapedPage, DB_CONFIG
+from models import ScrapedPage
 import requests
 from scrape import scrape
 import scraper
@@ -32,17 +32,6 @@ def dummy_get(url, headers=None, timeout=None):
 
 def dummy_exception(*args, **kwargs):
     raise Exception("Test exception")
-
-
-def test_db_config_override():
-    DB_CONFIG.update(
-        {
-            "host": "localhost",
-            "user": "test_user",
-            "password": "test_pass",
-            "database": "test_db",
-        }
-    )
 
 
 def test_scrape_page_valid_url():
