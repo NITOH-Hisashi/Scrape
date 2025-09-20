@@ -40,7 +40,7 @@ jobs:
       - name: Load .env.test
         uses: xom9ikk/dotenv@v2.3.0
         with:
-          path: .
+          path: environment/.env.test
           mode: test   # => .env.test を読み込む
 
       - name: Initialize database schema
