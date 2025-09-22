@@ -36,3 +36,6 @@ def get_settings() -> Settings:
 
 # アプリ全体で import して使うインスタンス
 settings = get_settings()
+
+# 既存の Settings 定義の下に追加
+USE_PLAYWRIGHT_PATTERNS = settings.use_playwright_patterns
