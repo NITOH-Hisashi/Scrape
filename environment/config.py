@@ -5,9 +5,6 @@ from typing import List
 import os
 
 
-USE_PLAYWRIGHT_PATTERNS = ["example.com", "/dynamic/"]
-
-
 class Settings(BaseSettings):
     # v2 スタイル: SettingsConfigDict を利用
     # SettingsConfigDict は TypedDict なので辞書リテラルで代入
@@ -28,7 +25,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Playwright を使う対象パターン
-    use_playwright_patterns: List[str] = USE_PLAYWRIGHT_PATTERNS
+    use_playwright_patterns: List[str] = []
 
 
 @lru_cache
