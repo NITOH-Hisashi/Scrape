@@ -117,5 +117,7 @@
     },
     "editor.suggest.snippetsPreventQuickSuggestions": false,
     "editor.acceptSuggestionOnEnter": "off",
-    "editor.suggestSelection": "recentlyUsedByPrefix"
+    "editor.suggestSelection": "recentlyUsedByPrefix",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": false
 }
