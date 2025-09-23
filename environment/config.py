@@ -6,15 +6,16 @@ import os
 
 
 class Settings(BaseSettings):
+    # 環境識別 (local / test / prod)
+    env: str = os.getenv('ENV', 'local')
+
     # v2 スタイル: SettingsConfigDict を利用
     # SettingsConfigDict は TypedDict なので辞書リテラルで代入
     model_config: SettingsConfigDict = {
-        "env_file": f".env.{os.getenv('ENV', 'local')}",
+        "env_file": f"./environment/.env.{env}",
         "env_file_encoding": "utf-8",
     }
-
-    # 環境識別 (local / test / prod)
-    env: str = "local"
+    print(f"[DEBUG] Loading config from {model_config['env_file']}")
 
     # DB 接続文字列 (MySQL / SQLite 両対応)
     database_url: AnyUrl = AnyUrl(
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
 
     # Playwright を使う対象パターン
     use_playwright_patterns: List[str] = []
-
+    print(f"[DEBUG] Loaded USE_PLAYWRIGHT_PATTERNS: {use_playwright_patterns}")
 
 @lru_cache
 def get_settings() -> Settings:
