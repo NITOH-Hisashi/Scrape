@@ -150,15 +150,15 @@ def save_page_to_db(page: ScrapedPage):
                     url,
                     url_hash,
                     fetched_at,
-                    error_message,
-                    processed,
-                    method,
-                    payload,
                     title,
                     content,
                     referrer,
                     status_code,
-                    hash
+                    hash,
+                    error_message,
+                    processed,
+                    method,
+                    payload
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
