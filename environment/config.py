@@ -27,12 +27,17 @@ class Settings(BaseSettings):
 
     # Playwright を使う対象パターン
     use_playwright_patterns: List[str] = []
-    print(f"[DEBUG] Loaded USE_PLAYWRIGHT_PATTERNS: {use_playwright_patterns}")
+
 
 @lru_cache
 def get_settings() -> Settings:
     """Settings をキャッシュして何度も生成しない"""
-    return Settings()
+    s = Settings()
+    print(f"[DEBUG] Loaded USE_PLAYWRIGHT_PATTERNS: {s.use_playwright_patterns}")
+    return s
+
+
+settings = get_settings()
 
 
 # アプリ全体で import して使うインスタンス
