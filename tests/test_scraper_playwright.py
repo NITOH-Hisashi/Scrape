@@ -87,7 +87,9 @@ def mock_playwright(monkeypatch):
 
 def test_scrape_page_with_playwright(monkeypatch):
     monkeypatch.setattr(config, "USE_PLAYWRIGHT_PATTERNS", ["amus.biz"])
-    monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: DummyPlaywright())
+    monkeypatch.setattr(
+        "playwright.sync_api.sync_playwright", lambda: DummyPlaywright()
+    )
 
     page = scrape_page("https://amus.biz")
     assert isinstance(page, ScrapedPage)

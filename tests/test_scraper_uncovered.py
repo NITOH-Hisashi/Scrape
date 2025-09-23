@@ -63,7 +63,9 @@ def test_should_scrape_with_delay(monkeypatch):
 
 
 def test_scrape_page_playwright(monkeypatch):
-    monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: DummyPlaywright())
+    monkeypatch.setattr(
+        "playwright.sync_api.sync_playwright", lambda: DummyPlaywright()
+    )
     monkeypatch.setattr(scraper, "get_hash", lambda t: "hash")
     page = scraper.scrape_page("http://example.com/")
     # モック設定ではなく実在のページを取得してしまっている
