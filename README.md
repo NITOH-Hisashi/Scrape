@@ -1,241 +1,154 @@
 # Scrape Webスクレイピングツール
 
-効率的で安全なWebスクレイピングを実現するPythonツールセットです。robots.txtの規則を遵守し、重複チェックや再帰的なリンク抽出機能を備えています。
+効率的で安全な Web スクレイピングを実現する Python ツールセットです。  
+本プロジェクトは **環境変数管理の徹底** と **SQLite/CI 対応** を重視しており、  
+ローカル開発・テスト・CI/CD での再現性と環境分離を保証します。  
 
-## 主な機能
+---
 
-- 🤖 robots.txtの自動解析と遵守
-- 📊 MySQLへのデータ自動保存
-- 🔗 インテリジェントなリンク抽出（画像alt属性の解析含む）
-- 🔄 コンテンツの重複チェック（SHA-256ハッシュによる）
-- 🌲 再帰的なクローリング機能
-- ⚠️ 包括的なエラー処理とログ記録
+## 🎯 設計思想（開発者向け）
 
-## プロジェクト構成
+本プロジェクトは「**再現性・環境分離・責務分離**」を最重要視しています。  
 
-- `config.py`: データベース設定
-- `models.py`: データモデルとデータベース操作
-- `robots_handler.py`: robots.txtの取得と解析
-- `link_extractor.py`: リンクの抽出と解析
-- `scraper.py`: メインのスクレイピング処理
+- **再現性**  
+  - ローカル・テスト・CI/CD で同じコードが同じ挙動をすることを保証  
+  - DB バックエンド（MySQL/SQLite）を環境変数で切り替え可能  
+  - `.env.local` / `.env.test` による設定分離で、環境依存の不具合を最小化  
 
-## セットアップ
+- **環境分離**  
+  - `ENV=local` → `environment/.env.local`  
+  - `ENV=test` → `environment/.env.test`  
+  - CI/CD では `ENV=test` を明示的にセットし、SQLite を利用して高速・安全にテスト  
 
-### 必要環境
+- **責務分離**  
+  - `config.py` : 環境変数と DB 設定  
+  - `models.py` : データモデルと DB 操作  
+  - `robots_handler.py` : robots.txt の取得と解析  
+  - `link_extractor.py` : リンク抽出と解析  
+  - `scraper.py` : スクレイピングの実行フロー  
+  - 各モジュールは単一責務を意識し、テスト可能性を高めています  
 
-- Python 3.x
-- MySQL 5.7以上 または MariaDB 10.x以上
+- **Playwright 判定**  
+  - 環境変数 `USE_PLAYWRIGHT_PATTERNS` により、動的ページを Playwright で取得するかを制御  
+  - 正規表現やドメイン指定で柔軟に制御可能  
+  - 例:  
+    ```env
+    USE_PLAYWRIGHT_PATTERNS=example.com,/dynamic/
+    ```
 
-```bash
-sudo apt install python3-pip
-sudo apt install python3.12-venv
-sudo apt install black
-sudo apt install flake8
-python3 -m venv venv
-source venv/bin/activate  # Windowsなら venv\\Scripts\\activate
+---
+
+## 🚀 主な機能
+- 🤖 robots.txt の自動解析と遵守  
+- 📊 MySQL / SQLite へのデータ保存（環境に応じて切替可能）  
+- 🔗 インテリジェントなリンク抽出（画像 alt 属性の解析含む）  
+- 🔄 コンテンツの重複チェック（SHA-256 ハッシュ）  
+- 🌲 再帰的クロール機能  
+- 🎭 Playwright を用いた動的ページ対応  
+- ⚠️ 包括的なエラー処理とログ記録  
+
+---
+
+## 📂 プロジェクト構成
+```
+environment/config.py   # 環境変数・DB 設定
+models.py               # データモデルと DB 操作
+robots_handler.py       # robots.txt の取得と解析
+link_extractor.py       # リンク抽出と解析
+scraper.py              # メインのスクレイピング処理
+tests/                  # pytest によるテスト
 ```
 
-### パッケージのインストール
+## 🛠 セットアップ
+
+### 必要環境
+- Python 3.12+
+- MySQL 5.7+ / MariaDB 10.x+ または SQLite（テスト用）
 
 ```bash
+sudo apt install python3-pip python3.12-venv
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### パッケージを追加したときに `requirements.txt` を更新する
+## ⚙️ 環境変数管理
 
+### ローカル開発
 ```bash
-pip freeze > requirements.txt
+export ENV=local
+```
+→ environment/.env.local を読み込む
+
+### テスト/CI
+```
+export ENV=test
+```
+→ environment/.env.test を読み込む
+
+### 例: .env.local
+```
+ENV=local
+DATABASE_URL=mysql://your_user:your_password@localhost:3306/scraping_db
+USE_PLAYWRIGHT_PATTERNS=example.com,/dynamic/
 ```
 
-### データベースの準備
+------------------------------------------------------------
 
-1. MySQLにデータベースを作成：
-```bash
-mysql -u root -h localhost -p
+## 🗄 データベース準備
+
+### MySQL
 ```
-```sql
 CREATE DATABASE scraping_db;
-USE scraping_db;
 CREATE USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
-GRANT all ON scraping_db.* TO 'your_user'@'localhost';
-```
-パスワード変更
-```sql
-ALTER USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL ON scraping_db.* TO 'your_user'@'localhost';
 ```
 
-2. 必要なテーブルを作成：
-```bash
-mysql -u your_user -p scraping_db < schema/scraped_pages.sql
-mysql -u your_user -p scraping_db < schema/robots_rules.sql
+### SQLite
+.env.test に以下を設定するだけで利用可能:
+```
+DB_BACKEND=sqlite
 ```
 
-## データベース設定
+------------------------------------------------------------
 
-`config.py`にデータベース接続情報を設定します：
+## ▶️ 使い方
 
-```python
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'your_user',
-    'password': 'your_password',
-    'database': 'scraping_db'
-}
+### スクレイピング実行
 ```
-
-## 使用方法
-
-### スクレイピングの実行
-
-基本的な実行：
-```bash
 python scraper.py
 ```
 
-オプションの指定：
-```bash
-# カスタムUser-agentを指定して実行
-python scraper.py --user-agent "CustomBot/1.0"
+### オプション例
+```
+python scraper.py --url https://example.com --user-agent "CustomBot/1.0"
 ```
 
-### スクレイピング対象の追加
+------------------------------------------------------------
 
-オプションの指定：
-```bash
-# カスタムUser-agentを指定して実行
-python scraper.py --url https://amus.biz
+## ✅ テスト
+
 ```
-
-または、
-スクレイピング対象のURLをデータベースに追加します：
-
-```sql
-USE scraping_db;
-INSERT INTO scraped_pages (url, processed) VALUES ('https://example.com', FALSE);
-```
-
-### 推奨開発環境
-- VisualStudioCode
-  https://azure.microsoft.com/ja-jp/products/visual-studio-code
-- A5:SQL Mk-2
-  https://a5m2.mmatsubara.com/
-
-### ドキュメントのフォーマット
-```bash
-black .
-flake8 .
-```
-  
-## データベーススキーマ
-
-### scraped_pages テーブル
-
-- `url`: スクレイピング対象のURL（主キー）
-- `referrer`: リンク元のURL
-- `fetched_at`: 取得日時
-- `title`: ページタイトルまたはリンクテキスト
-- `content`: ページのHTML内容
-- `status_code`: HTTPステータスコード
-- `hash`: コンテンツのハッシュ値
-- `error_message`: エラー情報（存在する場合）
-- `processed`: 処理済みフラグ
-
-### robots_rules テーブル
-
-- `domain`: ドメイン名（主キー）
-- `user_agent`: User-agent文字列
-- `disallow`: 禁止パターン（改行区切り）
-- `allow`: 許可パターン（改行区切り）
-- `crawl_delay`: クロール間隔（秒）
-- `fetched_at`: 取得日時
-- `expires_at`: 有効期限（24時間）
-
-## 注意事項
-
-- 対象サイトのrobots.txtを自動的に確認・遵守します
-- クロール間隔はrobots.txtの指定に従います
-- データの利用は各サイトの利用規約に従ってください
-- エラー発生時もデータベースに記録が残ります
-
-## エラー対処
-
-1. データベースエラー
-   - MySQLサービスの起動確認
-   - ユーザー権限の確認
-   - 接続情報の確認
-
-2. ネットワークエラー
-   - タイムアウト値の調整（デフォルト: 10秒）
-   - プロキシ設定の確認
-   - ファイアウォール設定の確認
-
----
-## ✅ テストの実行方法
-
-### 1. 必要な環境の準備
-- Python 3.x
-- `requests`, `beautifulsoup4`, `mysql-connector-python` などの依存パッケージをインストール：
-```bash
-pip install -r requirements.txt
-```
-
-### 2. データベースの準備（MySQL）
-```bash
-mysql -u root -h localhost -p
-```
-```sql
-CREATE DATABASE scraping_db;
-USE scraping_db;
-CREATE USER 'your_user'@'localhost' IDENTIFIED BY 'your_password';
-GRANT all ON scraping_db.* TO 'your_user'@'localhost';
-```
-
-- スキーマのインポート
-```bash
-mysql -u your_user -p scraping_db < schema/scraped_pages.sql
-mysql -u your_user -p scraping_db < schema/robots_rules.sql
-```
-
-### 3. DB接続設定（`config.py`）
-```python
-DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'your_user',
-    'password': 'your_password',
-    'database': 'scraping_db'
-}
-```
-
-### 4. テストの実行
-テストファイルは `tests/` ディレクトリにあり、`pytest` で実行可能です：
-
-```bash
 PYTHONPATH=. pytest
 ```
 
-特定のテストだけを実行したい場合：
-```bash
-pytest tests/test_scrape.py
-```
+- DB をモックしたテスト
+- Playwright 有効/無効の両ケースをカバー
+- CI では SQLite を利用し、MySQL 互換性チェックも実行
 
-### 5. モックを使ったテスト例
-`test_scrape_failure(mock_get)` という関数が確認されており、`requests.get` をモックして失敗ケースを検証しています。`pytest-mock` が必要な場合はインストールしてください：
+------------------------------------------------------------
 
-```bash
-pip install pytest-mock
-```
+## ⚠️ 注意事項
 
-## テーブル設計変更の時にテーブルを作り直す方法
-```bash
-mysql -u your_user -p scraping_db < recreate_scraped_pages.sql
-```
+- robots.txt を自動で確認・遵守します
+- クロール間隔は robots.txt の指定に従います
+- データ利用は各サイトの利用規約に従ってください
+- エラー発生時も DB に記録が残るため、再現性のあるデバッグが可能です
 
----
+------------------------------------------------------------
 
-## 参考資料
+## 📌 開発者向けメモ
 
-- [Requests ドキュメント](https://requests.readthedocs.io/ja/latest/)
-- [BeautifulSoup ドキュメント](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
-- [MySQLコネクタ/Python](https://dev.mysql.com/doc/connector-python/en/)
-- [MariaDBセットアップガイド](https://qiita.com/nanbuwks/items/c98c51744bd0f72a7087) https://qiita.com/nanbuwks/items/c98c51744bd0f72a7087
-- [MySQL | 新しいパスワードを設定する(SET PASSWORD 文、ALTER USER文)](https://www.javadrive.jp/mysql/user/index2.html) https://www.javadrive.jp/mysql/user/index2.html
+- 再現性を担保するため、環境変数は必ず .env.local / .env.test に明示的に記述してください
+- 責務分離を守ること：新しい機能を追加する際は既存モジュールの責務を壊さないように設計してください
+- テストは CI 前提：SQLite で必ず通ることを確認し、MySQL 互換性も担保してください
