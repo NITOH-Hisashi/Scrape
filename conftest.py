@@ -4,7 +4,8 @@ import sqlite3
 import mysql.connector
 import models
 from environment.config import settings
-import types, sys
+import types
+import sys
 
 
 @pytest.fixture(autouse=True)
@@ -221,6 +222,7 @@ def mock_playwright(monkeypatch):
     monkeypatch.setitem(sys.modules, "playwright.sync_api", dummy_module)
 
     # 重要: scraper を import し直して、差し替え後のモジュールを拾わせる
-    import importlib, scraper
+    import importlib
+    import scraper
 
     importlib.reload(scraper)
