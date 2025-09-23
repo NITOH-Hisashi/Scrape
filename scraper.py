@@ -16,8 +16,8 @@ from link_extractor import extract_links, extract_title
 from robots_handler import check_robots_rules
 import argparse
 import json
-from playwright.sync_api import sync_playwright  # type: ignore
-from config import USE_PLAYWRIGHT_PATTERNS
+import playwright.sync_api as playwright_sync_api
+from environment.config import USE_PLAYWRIGHT_PATTERNS
 
 
 def get_hash(text):
@@ -43,11 +43,12 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
         return ScrapedPage(
             url=None, title=None, content="", error_message="URL is empty"
         )
-    use_playwright = any(pat in url for pat in USE_PLAYWRIGHT_PATTERNS)
+    use_playwright, matched_pattern = match_playwright_pattern(url)
 
     try:
         if use_playwright:
-            with sync_playwright() as p:
+            print(f"[Info.] Playwright判定 ('{matched_pattern}') に一致 URL ('{url}')")
+            with playwright_sync_api.sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page_obj = browser.new_page()
                 if referrer:
@@ -57,8 +58,16 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
                 title = (await_or_call(page_obj.title())) or urlparse(url).netloc
                 browser.close()
                 status_code = 200
+                hash_value = get_hash(content)
+
                 return ScrapedPage(
-                    url=url, title=title, content=content, error_message=None
+                    url=url,
+                    title=title,
+                    content=content,
+                    error_message=None,
+                    referrer=referrer,
+                    status_code=status_code,
+                    hash_value=hash_value,
                 )
         else:
             headers = {"Referer": referrer} if referrer else {}
@@ -109,6 +118,15 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
         )
 
 
+# Playwrightを使うべきURLか判定
+def match_playwright_pattern(url: str) -> tuple[bool, str | None]:
+    """Playwrightを使うべきURLか判定"""
+    for pat in USE_PLAYWRIGHT_PATTERNS:
+        if pat in url:
+            return True, pat
+    return False, None
+
+
 def await_or_call(value):
     """値がawaitableならawaitし、そうでなければそのまま返す"""
     if isinstance(value, types.CoroutineType) or hasattr(value, "__await__"):
@@ -146,7 +164,15 @@ def fetch_post_content(url: str, data: dict, referrer: str | None = None, header
             hash_value=hash_value,
         )
     except Exception as e:
-        return ScrapedPage(url=url, referrer=referrer, error_message=str(e))
+        return ScrapedPage(
+            url=url,
+            referrer=referrer,
+            error_message=str(e),
+            title=None,
+            content="",
+            status_code=None,
+            hash_value=None,
+        )
 
 
 def extract_and_save_links(page):

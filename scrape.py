@@ -1,10 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-import mysql.connector
 import hashlib
 from urllib.parse import urlparse
 from fetch_and_store_robots import fetch_and_store_robots
-from models import ScrapedPage
+from models import ScrapedPage, get_connection, get_cursor
 
 
 # ハッシュ値を生成する関数
@@ -14,6 +13,11 @@ def get_hash(text):
 
 # スクレイピングを行う関数
 def scrape(url, referrer=None):
+    url = (url or "").strip()
+    if not url:
+        return ScrapedPage(
+            url=None, title=None, content="", error_message="URL is empty"
+        )
     try:
         headers = {"Referer": referrer} if referrer else {}
         response = requests.get(url, headers=headers, timeout=10)
@@ -43,10 +47,11 @@ def scrape(url, referrer=None):
 
 # MySQLにスクレイピング結果を保存する関数
 def save_to_mysql(data):
-    from config import DB_CONFIG
+    if not data:
+        return
 
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cursor = get_cursor(conn)
 
     try:
         sql = """
@@ -98,10 +103,9 @@ def is_under_base(url, base_url):
 
 # robots.txtのルールをチェックする関数
 def check_robots_rules(url, user_agent="MyScraperBot"):
-    from config import DB_CONFIG
-
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    """robots.txtのルールをチェック"""
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
 
     try:
         domain = urlparse(url).netloc
@@ -155,7 +159,7 @@ def check_robots_rules(url, user_agent="MyScraperBot"):
                         rules["crawl_delay"] if rules["crawl_delay"] is not None else 0
                     )
 
-        return True, rules["crawl_delay"] if rules["crawl_delay"] is not None else 0  # type: ignore
+        return True, 0  # 明示されていない場合は許可
 
     finally:
         cursor.close()

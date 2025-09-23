@@ -1,13 +1,11 @@
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse
-
 import requests
 from bs4 import BeautifulSoup
-import mysql.connector
+from models import get_connection, get_cursor
 from datetime import datetime, timedelta, UTC
 from urllib.parse import urljoin
 import hashlib
-from config import DB_CONFIG
 
 
 def extract_links(soup, base_url):
@@ -74,8 +72,8 @@ def get_hash(text):
 
 
 def save_to_mysql(data):
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cursor = get_cursor(conn)
     sql = """
         INSERT INTO scraped_pages (
             url,
@@ -114,16 +112,26 @@ def fetch_and_store_robots(domain, user_agent="MyScraperBot"):
     rp.set_url(robots_url)
     try:
         rp.read()
-        disallow = "\n".join(rp.disallow_all if rp.disallow_all else [])
-        allow = "\n".join(rp.allow_all if rp.allow_all else [])
+        # Manually parse the robots.txt content to extract disallow and allow rules
+        robots_txt_content = requests.get(robots_url, timeout=10).text
+        disallow_rules = []
+        allow_rules = []
+        for line in robots_txt_content.splitlines():
+            line = line.strip()
+            if line.startswith("Disallow:"):
+                disallow_rules.append(line[len("Disallow:") :].strip())
+            elif line.startswith("Allow:"):
+                allow_rules.append(line[len("Allow:") :].strip())
+        disallow = "\n".join(disallow_rules)
+        allow = "\n".join(allow_rules)
         delay = rp.crawl_delay(user_agent)
 
         now = datetime.now(UTC)
         expires = now + timedelta(hours=24)
 
         # DB保存（UPSERT）
-        conn = mysql.connector.connect(**DB_CONFIG)
-        cursor = conn.cursor()
+        conn = get_connection()
+        cursor = get_cursor(conn)
         cursor.execute(
             """
             INSERT INTO robots_rules (

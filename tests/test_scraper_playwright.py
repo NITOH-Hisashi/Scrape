@@ -1,6 +1,6 @@
 import pytest
 import types
-import config
+import environment.config as config
 from scraper import scrape_page, ScrapedPage
 
 
@@ -82,12 +82,14 @@ def mock_playwright(monkeypatch):
 
         return Context()
 
-    monkeypatch.setattr("scraper.sync_playwright", mock_sync_playwright)
+    monkeypatch.setattr("playwright.sync_api.sync_playwright", mock_sync_playwright)
 
 
 def test_scrape_page_with_playwright(monkeypatch):
     monkeypatch.setattr(config, "USE_PLAYWRIGHT_PATTERNS", ["amus.biz"])
-    monkeypatch.setattr("scraper.sync_playwright", lambda: DummyPlaywright())
+    monkeypatch.setattr(
+        "playwright.sync_api.sync_playwright", lambda: DummyPlaywright()
+    )
 
     page = scrape_page("https://amus.biz")
     assert isinstance(page, ScrapedPage)
@@ -106,3 +108,20 @@ def test_scrape_page_with_playwright(monkeypatch):
     assert page.status_code == 200
     assert page.hash is not None
     assert page.hash != ""  # 空文字列ではないことを確認
+
+
+@pytest.mark.parametrize("use_playwright", [True, False])
+def test_scrape_page_consistent_fields(use_playwright):
+    url = "https://example.com" if use_playwright else "https://x.com"
+    referrer = "https://referrer.com"
+    result = scrape_page(url, referrer=referrer)
+
+    assert isinstance(result, ScrapedPage)
+    assert result.url == url
+    assert result.referrer == referrer
+    assert result.title is not None
+    assert result.content != ""
+    assert result.status_code == 200
+    assert result.hash is not None
+    assert result.error_message is None
+    assert result.hash != ""  # 空文字列ではないことを確認

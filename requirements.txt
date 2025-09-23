@@ -1,3 +1,4 @@
+annotated-types==0.7.0
 beautifulsoup4==4.13.4
 certifi==2025.8.3
 charset-normalizer==3.4.3
@@ -10,11 +11,16 @@ mysql-connector-python==9.4.0
 packaging==25.0
 playwright==1.55.0
 pluggy==1.6.0
+pydantic==2.11.9
+pydantic-settings==2.10.1
+pydantic_core==2.33.2
 pyee==13.0.0
 Pygments==2.19.2
 pytest==8.4.1
 pytest-cov==6.2.1
+python-dotenv==1.1.1
 requests==2.32.4
 soupsieve==2.7
+typing-inspection==0.4.1
 typing_extensions==4.14.1
 urllib3==2.5.0

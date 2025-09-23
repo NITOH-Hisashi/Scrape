@@ -1,17 +1,24 @@
+from environment.config import settings
 from datetime import datetime
 import mysql.connector
-from config import DB_CONFIG
 import json
 from typing import Optional, Dict, Any, Tuple, Union
+import sqlite3
+import hashlib
+
+
+# 環境変数からDB設定を取得
+DB_URL = str(settings.database_url)
 
 
 class ScrapedPage:
+
     def __init__(
         self,
         url,
-        referrer=None,
         title=None,
         content=None,
+        referrer=None,
         status_code=None,
         hash_value=None,
         error_message=None,
@@ -20,6 +27,7 @@ class ScrapedPage:
         payload=None,
     ):
         self.url = url
+        self.url_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
         self.referrer = referrer
         self.fetched_at = datetime.now()
         self.title = title
@@ -27,7 +35,7 @@ class ScrapedPage:
         self.status_code = status_code
         self.hash = hash_value
         self.error_message = error_message
-        self.processed = False
+        self.processed = processed
         self.method = method
         self.payload = payload or {}
 
@@ -44,22 +52,39 @@ class ScrapedPage:
             "processed": self.processed,
             "method": self.method,
             "payload": json.dumps(self.payload),
+            "url_hash": self.url_hash,
+            "id": None,  # idはDB挿入時に自動生成されるためNoneで初期化
+            "url_domain": self.get_domain(self.url),
+            "referrer_domain": (
+                self.get_domain(self.referrer) if self.referrer else None
+            ),
         }
 
+    @staticmethod
+    def get_domain(url: Optional[str]) -> Optional[str]:
+        from urllib.parse import urlparse
 
-def save_page_to_db(page):
-    """スクレイピング結果をデータベースに保存（POST対応）"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+        if not url:
+            return None
+        parsed = urlparse(url)
+        return parsed.netloc
+
+
+def save_page_to_db(page: ScrapedPage):
+    """スクレイピング結果をデータベースに保存（MySQL/SQLite両対応）"""
+    conn = get_connection()
     cursor = conn.cursor()
     try:
-        # 値の型を安全に変換
         page_dict = page.to_dict()
+
         byte_size = (
             len(page_dict["content"].encode("utf-8", errors="ignore"))
             if page_dict.get("content")
             else 0
         )
         print(f"{page_dict['url']} page_dict content size: {byte_size} bytes")
+
+        # hash が bytes の場合は文字列化
         if page_dict.get("hash") is not None and not isinstance(page_dict["hash"], str):
             # bytesやその他の型を文字列化（例: SHA256のbytes → hex文字列）
             page_dict["hash"] = (
@@ -68,46 +93,91 @@ def save_page_to_db(page):
                 else str(page_dict["hash"])
             )
 
-        sql = """
-            INSERT INTO scraped_pages (
-                url,
-                referrer,
-                fetched_at,
-                title,
-                content,
-                status_code,
-                `hash`,
-                error_message,
-                processed,
-                method,
-                payload
+        if DB_URL.startswith("mysql"):
+            # MySQL 用: ON DUPLICATE KEY UPDATE
+            cursor.execute(
+                """
+                INSERT INTO scraped_pages (
+                    url,
+                    url_hash,
+                    fetched_at,
+                    title,
+                    content,
+                    referrer,
+                    status_code,
+                    hash,
+                    error_message,
+                    processed,
+                    method,
+                    payload
+                )
+                VALUES (
+                    %(url)s,
+                    %(url_hash)s,
+                    %(fetched_at)s,
+                    %(title)s,
+                    %(content)s,
+                    %(referrer)s,
+                    %(status_code)s,
+                    %(hash)s,
+                    %(error_message)s,
+                    %(processed)s,
+                    %(method)s,
+                    %(payload)s
+                )
+                ON DUPLICATE KEY UPDATE
+                    referrer = COALESCE(VALUES(referrer), referrer),
+                    fetched_at = CURRENT_TIMESTAMP,
+                    title = CASE
+                        WHEN (title IS NULL OR title = '') THEN VALUES(title)
+                        ELSE title
+                    END,
+                    content = COALESCE(VALUES(content), content),
+                    status_code = COALESCE(VALUES(status_code), status_code),
+                    hash = COALESCE(VALUES(hash), hash),
+                    error_message = VALUES(error_message),
+                    processed = VALUES(processed),
+                    method = VALUES(method),
+                    payload = VALUES(payload)
+                """,
+                page_dict,
             )
-            VALUES (
-                %(url)s,
-                %(referrer)s,
-                %(fetched_at)s,
-                %(title)s,
-                %(content)s,
-                %(status_code)s,
-                %(hash)s,
-                %(error_message)s,
-                %(processed)s,
-                %(method)s,
-                %(payload)s
+        else:
+            # SQLite 用: INSERT OR REPLACE
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO scraped_pages (
+                    url,
+                    url_hash,
+                    fetched_at,
+                    title,
+                    content,
+                    referrer,
+                    status_code,
+                    hash,
+                    error_message,
+                    processed,
+                    method,
+                    payload
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    page_dict["url"],
+                    page_dict["url_hash"],
+                    page_dict["fetched_at"],
+                    page_dict["title"],
+                    page_dict["content"],
+                    page_dict["referrer"],
+                    page_dict["status_code"],
+                    page_dict["hash"],
+                    page_dict["error_message"],
+                    page_dict["processed"],
+                    page_dict["method"],
+                    page_dict["payload"],
+                ),
             )
-            ON DUPLICATE KEY UPDATE
-                referrer = COALESCE(VALUES(referrer), referrer),
-                fetched_at = VALUES(fetched_at),
-                -- titleは更新しない
-                content = COALESCE(VALUES(content), content),
-                status_code = COALESCE(VALUES(status_code), status_code),
-                `hash` = COALESCE(VALUES(`hash`), `hash`),
-                error_message = VALUES(error_message),
-                processed = VALUES(processed),
-                method = VALUES(method),
-                payload = VALUES(payload)
-        """
-        cursor.execute(sql, page_dict)
+
         conn.commit()
     finally:
         cursor.close()
@@ -116,8 +186,8 @@ def save_page_to_db(page):
 
 def get_unprocessed_page() -> Optional[Dict[str, Any]]:
     """未処理のページを1件取得（POST対応）"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute(
             """
@@ -155,7 +225,7 @@ def get_unprocessed_page() -> Optional[Dict[str, Any]]:
 
 def mark_page_as_processed(url, error_message=None):
     """ページを処理済みとしてマーク"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
 
     try:
@@ -173,7 +243,7 @@ def mark_page_as_processed(url, error_message=None):
 
 def get_page_counts():
     """未処理件数と処理済み件数を返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages WHERE processed = FALSE")
@@ -194,7 +264,7 @@ def get_page_counts():
 
 def reset_all_processed():
     """全レコードの processed を FALSE にする"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE scraped_pages SET processed = FALSE")
@@ -206,7 +276,7 @@ def reset_all_processed():
 
 def exists_in_db(url: str) -> bool:
     """指定URLが scraped_pages に存在するかを返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT 1 FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
@@ -218,8 +288,8 @@ def exists_in_db(url: str) -> bool:
 
 def get_page_by_url(url: str):
     """指定URLのページ情報を取得"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute("SELECT * FROM scraped_pages WHERE url = %s LIMIT 1", (url,))
         row = cursor.fetchone()  # type: ignore
@@ -236,7 +306,7 @@ def get_page_by_url(url: str):
 
 def delete_page_by_url(url: str):
     """指定URLのページ情報を削除"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM scraped_pages WHERE url = %s", (url,))
@@ -248,7 +318,7 @@ def delete_page_by_url(url: str):
 
 def update_page_content(url: str, content: str, hash_value):
     """指定URLのページ内容とハッシュを更新"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         hash_str = (
@@ -268,7 +338,7 @@ def update_page_content(url: str, content: str, hash_value):
 
 def clear_all_pages():
     """scraped_pages テーブルの全レコードを削除"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM scraped_pages")
@@ -280,7 +350,7 @@ def clear_all_pages():
 
 def count_pages():
     """scraped_pages テーブルの全レコード数を返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages")
@@ -295,7 +365,7 @@ def count_pages():
 
 def get_all_urls():
     """scraped_pages テーブルの全URLをリストで返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT url FROM scraped_pages")
@@ -313,7 +383,7 @@ def get_all_urls():
 
 def get_processed_urls():
     """処理済みのURLをリストで返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT url FROM scraped_pages WHERE processed = TRUE")
@@ -331,8 +401,8 @@ def get_processed_urls():
 
 def get_unprocessed_urls():
     """未処理のURLをリストで返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute("SELECT url FROM scraped_pages WHERE processed = FALSE")
         rows = cursor.fetchall()  # type: ignore
@@ -349,7 +419,7 @@ def get_unprocessed_urls():
 
 def mark_all_as_processed():
     """全ページを処理済みとしてマーク"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE scraped_pages SET processed = TRUE")
@@ -361,7 +431,7 @@ def mark_all_as_processed():
 
 def mark_all_as_unprocessed():
     """全ページを未処理としてマーク"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE scraped_pages SET processed = FALSE")
@@ -373,7 +443,7 @@ def mark_all_as_unprocessed():
 
 def update_error_message(url: str, error_message: str):
     """指定URLのエラーメッセージを更新"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -388,8 +458,8 @@ def update_error_message(url: str, error_message: str):
 
 def get_error_messages():
     """全ページのエラーメッセージを取得"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute(
             "SELECT url,"
@@ -405,7 +475,7 @@ def get_error_messages():
 
 def clear_error_messages():
     """全ページのエラーメッセージをクリア"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE scraped_pages SET error_message = NULL")
@@ -417,8 +487,8 @@ def clear_error_messages():
 
 def get_page_statistics():
     """ページの統計情報を取得"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute(
             """
@@ -444,8 +514,8 @@ def get_page_statistics():
 
 def get_page_by_id(page_id: int):
     """指定IDのページ情報を取得"""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = get_cursor(conn, dictionary=True)
     try:
         cursor.execute("SELECT * FROM scraped_pages WHERE id = %s", (page_id,))
         return cursor.fetchone()
@@ -456,7 +526,7 @@ def get_page_by_id(page_id: int):
 
 def get_page_count():
     """scraped_pages テーブルの全レコード数を返す"""
-    conn = mysql.connector.connect(**DB_CONFIG)
+    conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM scraped_pages")
@@ -464,3 +534,32 @@ def get_page_count():
     finally:
         cursor.close()
         conn.close()
+
+
+def get_connection():
+    if DB_URL.startswith("sqlite"):
+        print("Using SQLite backend")
+        conn = sqlite3.connect(DB_URL.replace("sqlite:///", ""))
+        conn.row_factory = sqlite3.Row
+        return conn
+    elif DB_URL.startswith("mysql"):
+        import urllib.parse as urlparse
+
+        url = urlparse.urlparse(DB_URL.replace("mysql://", "mysql+pymysql://"))
+        return mysql.connector.connect(
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port or 3306,
+            database=url.path.lstrip("/"),
+            charset="utf8mb4",
+        )
+    else:
+        raise ValueError(f"Unsupported DB backend: {DB_URL}")
+
+
+def get_cursor(conn, dictionary=False):
+    if DB_URL.startswith("sqlite"):
+        return conn.cursor()
+    else:  # mysql
+        return conn.cursor(dictionary=dictionary)

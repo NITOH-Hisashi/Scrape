@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock, Mock
-import config
+import environment.config as config
 from scraper import (
     get_hash,
     scrape_page,
@@ -8,7 +8,7 @@ from scraper import (
     process_single_page,
     fetch_post_content,
 )
-from models import ScrapedPage, DB_CONFIG
+from models import ScrapedPage
 import requests
 from scrape import scrape
 import scraper
@@ -32,17 +32,6 @@ def dummy_get(url, headers=None, timeout=None):
 
 def dummy_exception(*args, **kwargs):
     raise Exception("Test exception")
-
-
-def test_db_config_override():
-    DB_CONFIG.update(
-        {
-            "host": "localhost",
-            "user": "test_user",
-            "password": "test_pass",
-            "database": "test_db",
-        }
-    )
 
 
 def test_scrape_page_valid_url():
@@ -103,17 +92,21 @@ def test_scrape_failure_http(monkeypatch):
 def test_scrape_success_db(mock_connect, mock_get):
     mock_get.return_value.status_code = 200
     mock_get.return_value.text = (
-        "<html><body><a href='https://example.com'>Link</a></body></html>"
+        "<html><body><a href='https://amus.info/link'>Link</a></body></html>"
     )
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_connect.return_value = mock_conn
     mock_conn.cursor.return_value = mock_cursor
     mock_cursor.fetchone.return_value = None
-    result = scrape_page("https://example.com")
-    assert result.status_code is None  # DB保存はmockで実際には行われない
+    result = scrape_page("https://amus.info")
+    assert result.status_code == 200  # DB保存はmockで実際には行われない
     assert result.error_message is None
     assert result.content is not None
+    assert "https://amus.info/link" in result.content
+    assert result.title == "amus.info"  # タイトルタグがない場合はURLのホスト名になる
+    assert result.hash is not None
+    assert result.hash != ""  # 空文字列ではないことを確認
 
 
 @patch("scraper.check_robots_rules")

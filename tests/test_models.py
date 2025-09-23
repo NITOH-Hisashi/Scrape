@@ -60,9 +60,10 @@ class TestDBFunctions(unittest.TestCase):
 
         result: Optional[Dict[str, Any]] = get_unprocessed_page()
         self.assertIsNotNone(result)
-        self.assertEqual(result["url"], "https://example.com")
-        self.assertEqual(result["method"], "POST")
-        self.assertEqual(result["payload"], {"key": "value"})
+        if result is not None:
+            self.assertEqual(result["url"], "https://example.com")
+            self.assertEqual(result["method"], "POST")
+            self.assertEqual(result["payload"], {"key": "value"})
 
     @patch("models.mysql.connector.connect")
     def test_mark_page_as_processed(self, mock_connect):
