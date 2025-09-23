@@ -16,7 +16,7 @@ from link_extractor import extract_links, extract_title
 from robots_handler import check_robots_rules
 import argparse
 import json
-from playwright.sync_api import sync_playwright  # type: ignore
+import playwright.sync_api as playwright_sync_api
 from environment.config import USE_PLAYWRIGHT_PATTERNS
 
 
@@ -48,7 +48,7 @@ def scrape_page(url: str, referrer: str | None = None) -> ScrapedPage:
     try:
         if use_playwright:
             print(f"[Info.] Playwright判定 ('{matched_pattern}') に一致 URL ('{url}')")
-            with sync_playwright() as p:
+            with playwright_sync_api.sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page_obj = browser.new_page()
                 if referrer:

@@ -4,6 +4,7 @@ import sqlite3
 import mysql.connector
 import models
 from environment.config import settings
+import types, sys
 
 
 @pytest.fixture(autouse=True)
@@ -174,3 +175,52 @@ def sample_data():
         conn.close()
     else:
         pass  # MySQLは特に何もしない
+
+
+class DummyPage:
+    def __init__(self, content="<html><title>T</title></html>", title="T"):
+        self._content = content
+        self._title = title
+
+    def content(self):
+        return self._content
+
+    @property
+    def title(self):
+        return self._title
+
+    def set_extra_http_headers(self, headers):
+        pass
+
+    def goto(self, url, wait_until=None):
+        pass
+
+
+class DummyBrowser:
+    def new_page(self):
+        return DummyPage()
+
+    def close(self):
+        pass
+
+
+class DummyPlaywright:
+    def __enter__(self):
+        return types.SimpleNamespace(
+            chromium=types.SimpleNamespace(launch=lambda headless: DummyBrowser())
+        )
+
+    def __exit__(self, exc_type, exc, tb):
+        pass
+
+
+@pytest.fixture(autouse=True)
+def mock_playwright(monkeypatch):
+    dummy_module = types.SimpleNamespace(sync_playwright=lambda: DummyPlaywright())
+    # ここで sys.modules を差し替える
+    monkeypatch.setitem(sys.modules, "playwright.sync_api", dummy_module)
+
+    # 重要: scraper を import し直して、差し替え後のモジュールを拾わせる
+    import importlib, scraper
+
+    importlib.reload(scraper)

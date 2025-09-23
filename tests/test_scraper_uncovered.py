@@ -63,18 +63,6 @@ def test_should_scrape_with_delay(monkeypatch):
 
 
 def test_scrape_page_playwright(monkeypatch):
-    # 例：importが`from playwright.sync_api import sync_playwright`の場合
-    monkeypatch.setattr(
-        "playwright.sync_api.sync_playwright", lambda: DummyPlaywright()
-    )
-    # 1. 直接importしている場合
-    monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: DummyPlaywright())
-    # 2. scraper.py内で`from playwright.sync_api import sync_playwright`している場合
-    monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: DummyPlaywright())
-    monkeypatch.setattr("scraper.sync_playwright", lambda: DummyPlaywright())
-    monkeypatch.setattr(scraper, "sync_playwright", lambda: DummyPlaywright())
-    # 例：importが`from playwright.sync_api import sync_playwright`の場合
-    monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: DummyPlaywright())
     monkeypatch.setattr("playwright.sync_api.sync_playwright", lambda: DummyPlaywright())
     monkeypatch.setattr(scraper, "get_hash", lambda t: "hash")
     page = scraper.scrape_page("http://example.com/")

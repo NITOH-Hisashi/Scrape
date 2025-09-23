@@ -1,4 +1,4 @@
-from playwright.sync_api import sync_playwright
+import playwright.sync_api as playwright_sync_api
 import requests
 
 
@@ -21,7 +21,7 @@ def fetch_html(
     headers = headers or {}
 
     if use_playwright:
-        with sync_playwright() as p:
+        with playwright_sync_api.sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
